@@ -321,13 +321,6 @@
         setEditingContactDetails({ ...contact });
       };
 
-      const handleQuickTalkToday = (id) => {
-        setContacts(contacts.map(c => c.id === id ? { 
-          ...c, 
-          interactions: [...c.interactions, { id: crypto.randomUUID(), date: new Date().toISOString(), note: '' }] 
-        } : c));
-      };
-
       const handleLogInteraction = (e) => {
         e.preventDefault();
         if (!loggingInteractionFor || !interactionDate) return;
@@ -565,14 +558,11 @@
 
                       <div className="flex flex-col items-end gap-1.5 self-end sm:self-auto">
                         <div className="flex items-center gap-2">
-                          <button onClick={() => openLogModal(contact)} className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors border ${t('bg-white hover:bg-zinc-50 text-zinc-700 border-zinc-200', 'bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border-zinc-700')}`} title="Add detailed note">
-                            <MessageSquarePlus size={16} className={t('text-zinc-400', 'text-zinc-500')} /> Note
-                          </button>
-                          <button onClick={() => handleQuickTalkToday(contact.id)} className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors border ${t('bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border-zinc-200', 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700')}`} title="Quick log today">
-                            <CheckCircle2 size={16} className={t('text-emerald-500', 'text-emerald-400')} /> Today
+                          <button onClick={() => openLogModal(contact)} className={`inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-lg transition-colors border ${t('bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border-zinc-200', 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700')}`} title="Log a new interaction">
+                            <MessageSquarePlus size={16} className={t('text-zinc-400', 'text-zinc-500')} /> Log
                           </button>
                         </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity mt-1">
                           <button onClick={() => openEditContactModal(contact)} className={`p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-blue-500 hover:bg-blue-50', 'text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10')}`} title="Edit Contact">
                             <Pencil size={14} />
                           </button>
