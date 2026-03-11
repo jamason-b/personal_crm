@@ -78,6 +78,7 @@
     const ArrowUpDown = (p) => <Icon {...p}><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></Icon>;
     const Pencil = (p) => <Icon {...p}><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></Icon>;
     const Gift = (p) => <Icon {...p}><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></Icon>;
+    const Cloud = (p) => <Icon {...p}><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></Icon>;
 
     // --- App Code ---
     const DEFAULT_TAGS = ['Family', 'OG Friend', 'Mission Friend', 'School Friend'];
@@ -100,7 +101,9 @@
     function App() {
       // App State
       const [dataLoading, setDataLoading] = useState(true);
+      const [syncStatus, setSyncStatus] = useState('Synced');
       const isInitialDataLoad = useRef(true);
+      const isRemoteUpdate = useRef(false); // <--- We add this flag to break the infinite loop
 
       const [isDarkMode, setIsDarkMode] = useState(false);
       const [tags, setTags] = useState(DEFAULT_TAGS);
@@ -143,9 +146,13 @@
             // We check hasPendingWrites so we don't accidentally overwrite local state 
             // while a local save is currently traveling to the server.
             if (!doc.metadata.hasPendingWrites) {
+              
+              // Flag that this incoming data is from the cloud, so we don't echo it back
+              isRemoteUpdate.current = true; 
+              
               setContacts(data.contacts || []);
               setTags(data.tags || DEFAULT_TAGS);
-              setIsDarkMode(data.isDarkMode || false);
+              setIsDarkMode(data.isDarkMode !== undefined ? data.isDarkMode : false);
             }
           }
           setDataLoading(false);
@@ -163,13 +170,30 @@
       useEffect(() => {
         if (isInitialDataLoad.current || dataLoading) return;
         
+        // If this state change was triggered by the cloud sending us data, 
+        // we skip the save to prevent an infinite bouncing loop!
+        if (isRemoteUpdate.current) {
+          isRemoteUpdate.current = false;
+          return;
+        }
+        
+        setSyncStatus('Syncing...');
+        
         // Save the updated state to the cloud shared workspace
         db.collection('crm_data').doc(SHARED_DOC_ID).set({
           contacts,
           tags,
           isDarkMode,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+        }, { merge: true })
+        .then(() => {
+          // Add a slight delay so the indicator doesn't blink too fast to read
+          setTimeout(() => setSyncStatus('Synced'), 600);
+        })
+        .catch(err => {
+          console.error('Error saving to cloud:', err);
+          setSyncStatus('Sync Error');
+        });
 
       }, [contacts, tags, isDarkMode, dataLoading]);
 
@@ -414,7 +438,19 @@
             
             <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
               <div>
-                <h1 className={`text-3xl font-light tracking-tight ${t('text-zinc-900', 'text-white')}`}>Connections</h1>
+                <div className="flex items-center gap-3">
+                  <h1 className={`text-3xl font-light tracking-tight ${t('text-zinc-900', 'text-white')}`}>Connections</h1>
+                  <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+                    syncStatus === 'Syncing...' 
+                      ? t('bg-blue-50 text-blue-600', 'bg-blue-500/10 text-blue-400')
+                      : syncStatus === 'Sync Error'
+                        ? t('bg-rose-50 text-rose-600', 'bg-rose-500/10 text-rose-400')
+                        : t('bg-emerald-50 text-emerald-600', 'bg-emerald-500/10 text-emerald-400')
+                  }`}>
+                    <Cloud size={14} className={syncStatus === 'Syncing...' ? 'animate-pulse' : ''} />
+                    <span>{syncStatus}</span>
+                  </div>
+                </div>
                 <p className={`mt-1 text-sm ${t('text-zinc-500', 'text-zinc-400')}`}>Stay mindful of your relationships.</p>
               </div>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
