@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Personal CRM</title>
-
-    <!-- Custom Browser Icon (Favicon) -->
+  
+  <!-- Custom Browser Icon (Favicon) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👥</text></svg>">
   
   <!-- Load React and ReactDOM -->
@@ -419,15 +419,18 @@
               </div>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <input type="file" accept=".json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImportData} />
-                <div className="flex bg-white dark:bg-zinc-900 rounded-full border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
-                  <button onClick={() => fileInputRef.current?.click()} className={`p-2.5 transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800')}`} title="Import Backup"><Upload size={16} /></button>
-                  <div className={`w-px ${t('bg-zinc-200', 'bg-zinc-800')}`}></div>
-                  <button onClick={handleExportData} className={`p-2.5 transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800')}`} title="Export Backup"><Download size={16} /></button>
+                
+                <div className={`flex rounded-full border overflow-hidden shadow-sm transition-colors ${t('bg-white border-zinc-200', 'bg-zinc-900 border-zinc-800')}`}>
+                  <button onClick={() => fileInputRef.current?.click()} className={`p-2.5 transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800')}`} title="Import Backup"><Upload size={16} /></button>
+                  <div className={`w-px transition-colors ${t('bg-zinc-200', 'bg-zinc-800')}`}></div>
+                  <button onClick={handleExportData} className={`p-2.5 transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800')}`} title="Export Backup"><Download size={16} /></button>
                 </div>
-                <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2.5 rounded-full transition-colors border shadow-sm ${t('bg-white text-zinc-600 hover:bg-zinc-100 border-zinc-200', 'bg-zinc-900 text-zinc-400 hover:text-zinc-100 border-zinc-800 hover:bg-zinc-800')}`} title="Toggle theme">
+                
+                <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2.5 rounded-full transition-colors border shadow-sm ${t('bg-white text-zinc-600 hover:bg-zinc-100 border-zinc-200', 'bg-zinc-900 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 border-zinc-800')}`} title="Toggle theme">
                   {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
                 </button>
-                <button onClick={() => setIsAddModalOpen(true)} className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-colors shadow-sm ${t('bg-zinc-900 text-white hover:bg-zinc-800', 'bg-white text-zinc-900 hover:bg-zinc-200')}`}>
+                
+                <button onClick={() => setIsAddModalOpen(true)} className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-colors shadow-sm border ${t('bg-zinc-900 text-white border-transparent hover:bg-zinc-800', 'bg-zinc-800 text-zinc-100 border-zinc-700 hover:bg-zinc-700')}`}>
                   <UserPlus size={16} /> Add Person
                 </button>
               </div>
