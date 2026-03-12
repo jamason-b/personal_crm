@@ -422,14 +422,14 @@
       };
 
       if (dataLoading) {
-        return <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center font-sans text-zinc-500">Loading your CRM...</div>;
+        return <div className="min-h-[100dvh] bg-[#FAFAFA] flex items-center justify-center font-sans text-zinc-500">Loading your CRM...</div>;
       }
 
       return (
-        <div className={`min-h-screen font-sans p-6 sm:p-10 transition-colors duration-200 ${t('bg-[#FAFAFA] text-zinc-800', 'bg-zinc-950 text-zinc-100')}`}>
+        <div className={`min-h-[100dvh] font-sans p-4 sm:p-10 safe-pb transition-colors duration-200 ${t('bg-[#FAFAFA] text-zinc-800', 'bg-zinc-950 text-zinc-100')}`}>
           <div className="max-w-3xl mx-auto">
             
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-10">
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className={`text-3xl font-light tracking-tight ${t('text-zinc-900', 'text-white')}`}>Connections</h1>
