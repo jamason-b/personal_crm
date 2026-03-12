@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Personal CRM</title>
+  
+  <!-- Theme Color for iOS Status Bar & Safari Bottom Bar -->
+  <meta name="theme-color" content="#FAFAFA" id="theme-color-meta">
   
   <!-- Custom Browser Icon (Favicon) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👥</text></svg>">
@@ -18,12 +21,22 @@
   <!-- Load Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Load Firebase Compat SDKs (Auth removed) -->
+  <!-- Load Firebase Compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <style>
+    /* Force the physical HTML/Body to change color to match dark mode */
+    html, body {
+      background-color: #FAFAFA;
+      transition: background-color 0.2s ease-in-out;
+      /* Prevent the white background from showing on overscroll bounce */
+      overscroll-behavior-y: none;
+    }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    
+    /* Mobile safe area padding for the bottom swipe bar */
+    .safe-pb { padding-bottom: calc(2rem + env(safe-area-inset-bottom)); }
   </style>
 </head>
 <body>
@@ -33,7 +46,7 @@
     const { useState, useMemo, useEffect, useRef } = React;
 
     // ==========================================
-    // 1. PASTE YOUR FIREBASE CONFIG HERE
+    // 1. FIREBASE CONFIGURATION
     // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyB9s5odA5RIBPXmBumdSl59D89DBv9cZIQ",
@@ -80,14 +93,12 @@
     const Gift = (p) => <Icon {...p}><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></Icon>;
     const Cloud = (p) => <Icon {...p}><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></Icon>;
 
-    // --- App Code ---
     const DEFAULT_TAGS = ['Family', 'OG Friend', 'Mission Friend', 'School Friend'];
 
     const getAvatarColor = (name, isDark, needsAttention) => {
       if (needsAttention) {
         return isDark ? 'bg-rose-500/20 text-rose-300' : 'bg-rose-100 text-rose-700';
       }
-
       const colors = isDark 
         ? ['bg-green-500/20 text-green-300', 'bg-emerald-500/20 text-emerald-300', 'bg-teal-500/20 text-teal-300', 'bg-cyan-500/20 text-cyan-300', 'bg-blue-500/20 text-blue-300', 'bg-indigo-500/20 text-indigo-300', 'bg-violet-500/20 text-violet-300', 'bg-purple-500/20 text-purple-300', 'bg-fuchsia-500/20 text-fuchsia-300']
         : ['bg-green-100 text-green-700', 'bg-emerald-100 text-emerald-700', 'bg-teal-100 text-teal-700', 'bg-cyan-100 text-cyan-700', 'bg-blue-100 text-blue-700', 'bg-indigo-100 text-indigo-700', 'bg-violet-100 text-violet-700', 'bg-purple-100 text-purple-700', 'bg-fuchsia-100 text-fuchsia-700'];
@@ -103,7 +114,7 @@
       const [dataLoading, setDataLoading] = useState(true);
       const [syncStatus, setSyncStatus] = useState('Synced');
       const isInitialDataLoad = useRef(true);
-      const isRemoteUpdate = useRef(false); // <--- We add this flag to break the infinite loop
+      const isRemoteUpdate = useRef(false);
 
       const [isDarkMode, setIsDarkMode] = useState(false);
       const [tags, setTags] = useState(DEFAULT_TAGS);
@@ -135,6 +146,18 @@
       const fileInputRef = useRef(null);
       const t = (light, dark) => isDarkMode ? dark : light;
 
+      // Update mobile status bar and body background when theme changes
+      useEffect(() => {
+        const color = isDarkMode ? '#09090b' : '#FAFAFA'; // #09090b is Tailwind's zinc-950
+        document.documentElement.style.backgroundColor = color;
+        document.body.style.backgroundColor = color;
+        
+        let metaThemeColor = document.getElementById('theme-color-meta');
+        if (metaThemeColor) {
+          metaThemeColor.setAttribute("content", color);
+        }
+      }, [isDarkMode]);
+
       // Pull data from Firestore on mount
       useEffect(() => {
         setDataLoading(true);
@@ -143,11 +166,7 @@
         const unsubscribe = db.collection('crm_data').doc(SHARED_DOC_ID).onSnapshot(doc => {
           if (doc.exists) {
             const data = doc.data();
-            // We check hasPendingWrites so we don't accidentally overwrite local state 
-            // while a local save is currently traveling to the server.
             if (!doc.metadata.hasPendingWrites) {
-              
-              // Flag that this incoming data is from the cloud, so we don't echo it back
               isRemoteUpdate.current = true; 
               
               setContacts(data.contacts || []);
@@ -156,7 +175,6 @@
             }
           }
           setDataLoading(false);
-          // Wait a tiny bit before allowing writes to ensure state has settled
           setTimeout(() => { isInitialDataLoad.current = false; }, 500);
         }, error => {
           console.error("Error syncing data:", error);
@@ -170,8 +188,6 @@
       useEffect(() => {
         if (isInitialDataLoad.current || dataLoading) return;
         
-        // If this state change was triggered by the cloud sending us data, 
-        // we skip the save to prevent an infinite bouncing loop!
         if (isRemoteUpdate.current) {
           isRemoteUpdate.current = false;
           return;
@@ -179,7 +195,6 @@
         
         setSyncStatus('Syncing...');
         
-        // Save the updated state to the cloud shared workspace
         db.collection('crm_data').doc(SHARED_DOC_ID).set({
           contacts,
           tags,
@@ -187,7 +202,6 @@
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true })
         .then(() => {
-          // Add a slight delay so the indicator doesn't blink too fast to read
           setTimeout(() => setSyncStatus('Synced'), 600);
         })
         .catch(err => {
@@ -206,6 +220,8 @@
             setContactToDelete(null);
             setLoggingInteractionFor(null);
             setViewingHistoryFor(null);
+            setEditingContactDetails(null);
+            setEditingInteraction(null);
           }
         };
         window.addEventListener('keydown', handleEsc);
@@ -216,7 +232,6 @@
         if (e.target === e.currentTarget) closeFn();
       };
 
-      // Ensure form has default tag ready when opened
       useEffect(() => {
          if (isAddModalOpen && tags.length > 0 && !newTag) setNewTag(tags[0]);
       }, [isAddModalOpen, tags, newTag]);
@@ -260,7 +275,6 @@
         const [year, month, day] = birthdayStr.split('-');
         const bdayThisYear = new Date(today.getFullYear(), month - 1, day);
         
-        // If birthday already passed this year, check next year
         if (bdayThisYear < today && (today - bdayThisYear) > 1000 * 60 * 60 * 24) {
            bdayThisYear.setFullYear(today.getFullYear() + 1);
         }
