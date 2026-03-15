@@ -8,8 +8,39 @@
   <!-- Theme Color for iOS Status Bar & Safari Bottom Bar -->
   <meta name="theme-color" content="#FAFAFA" id="theme-color-meta">
   
+  <!-- iOS Native App Capabilities -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="CRM">
+  
   <!-- Custom Browser Icon (Favicon) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👥</text></svg>">
+  
+  <!-- Generate iOS Home Screen Icon Dynamically -->
+  <script>
+    (function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 180;
+      canvas.height = 180;
+      const ctx = canvas.getContext('2d');
+      
+      // Draw a sleek dark background
+      ctx.fillStyle = '#18181b'; // Tailwind zinc-900 color
+      ctx.fillRect(0, 0, 180, 180);
+      
+      // Draw the emoji in the center
+      ctx.font = '90px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('👥', 90, 95);
+      
+      // Convert to PNG and tell iOS to use it as the app icon
+      const link = document.createElement('link');
+      link.rel = 'apple-touch-icon';
+      link.href = canvas.toDataURL('image/png');
+      document.head.appendChild(link);
+    })();
+  </script>
   
   <!-- Load React and ReactDOM -->
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
