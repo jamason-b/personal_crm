@@ -607,53 +607,52 @@
                   }
 
                   return (
-                    <div key={contact.id} className={`group flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl border shadow-sm hover:shadow-md transition-all duration-200 gap-4 ${t('bg-white border-zinc-100', 'bg-zinc-900 border-zinc-800/50 hover:border-zinc-700')}`}>
-                      <div className="flex items-start sm:items-center gap-4">
-                        <div className={`h-10 w-10 rounded-full flex items-center justify-center font-medium text-sm flex-shrink-0 ${getAvatarColor(fullName, isDarkMode, needsAttention)}`}>
+                    <div key={contact.id} className={`group flex items-start justify-between p-4 sm:p-5 rounded-2xl border shadow-sm hover:shadow-md transition-all duration-200 gap-3 sm:gap-4 ${t('bg-white border-zinc-100', 'bg-zinc-900 border-zinc-800/50 hover:border-zinc-700')}`}>
+                      <div className="flex items-start gap-3 sm:gap-4 min-w-0">
+                        <div className={`h-10 w-10 rounded-full flex items-center justify-center font-medium text-sm shrink-0 ${getAvatarColor(fullName, isDarkMode, needsAttention)}`}>
                           {contact.firstName.charAt(0)}{contact.lastName ? contact.lastName.charAt(0) : ''}
                         </div>
                         
-                        <div>
-                          <h3 className={`text-base font-medium flex items-center gap-2 ${t('text-zinc-900', 'text-zinc-100')}`}>
+                        <div className="min-w-0 pt-0.5">
+                          <h3 className={`text-base font-medium flex items-center gap-2 truncate ${t('text-zinc-900', 'text-zinc-100')}`}>
                             {fullName}
                           </h3>
-                          <div className="flex flex-wrap items-center gap-2 mt-1">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contact)}`}>
+                          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap ${getStatusColor(contact)}`}>
                               {getRelativeTime(latestInteraction?.date)}
                             </span>
                             {contact.tag && (
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${t('bg-zinc-50 border-zinc-200 text-zinc-500', 'bg-zinc-800/50 border-zinc-700 text-zinc-400')}`}>
-                                <Tag size={10} className="mr-1" />{contact.tag}
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium border whitespace-nowrap ${t('bg-zinc-50 border-zinc-200 text-zinc-500', 'bg-zinc-800/50 border-zinc-700 text-zinc-400')}`}>
+                                <Tag size={10} className="mr-1 hidden sm:inline-block" />{contact.tag}
                               </span>
                             )}
                             {isBirthdayUpcoming(contact.birthday) && (
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${t('bg-fuchsia-50 border-fuchsia-200 text-fuchsia-600', 'bg-fuchsia-500/10 border-fuchsia-500/20 text-fuchsia-400')}`} title="Birthday within 7 days!">
-                                <Gift size={10} className="mr-1" /> Upcoming B-Day
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium border whitespace-nowrap ${t('bg-fuchsia-50 border-fuchsia-200 text-fuchsia-600', 'bg-fuchsia-500/10 border-fuchsia-500/20 text-fuchsia-400')}`} title="Birthday within 7 days!">
+                                <Gift size={10} className="mr-1 hidden sm:inline-block" /> Upcoming B-Day
                               </span>
                             )}
                           </div>
                           {latestInteraction?.note && (
-                            <p className={`mt-2 text-sm italic truncate max-w-[200px] sm:max-w-xs ${t('text-zinc-500', 'text-zinc-400')}`}>
+                            <p className={`mt-2 text-sm italic truncate sm:whitespace-normal ${t('text-zinc-500', 'text-zinc-400')}`}>
                               "{latestInteraction.note}"
                             </p>
                           )}
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-end gap-1.5 self-end sm:self-auto">
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => openLogModal(contact)} className={`inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium rounded-lg transition-colors border ${t('bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border-zinc-200', 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700')}`} title="Log interaction">
-                            <MessageSquarePlus size={16} className={t('text-zinc-400', 'text-zinc-500')} /> Log
-                          </button>
-                        </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity mt-1">
-                          <button onClick={() => openEditContactModal(contact)} className={`p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-blue-500 hover:bg-blue-50', 'text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10')}`} title="Edit Contact">
+                      <div className="flex flex-col items-end gap-2 shrink-0 pl-1">
+                        <button onClick={() => openLogModal(contact)} className={`inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-1.5 text-[11px] sm:text-sm font-medium rounded-lg transition-colors border ${t('bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border-zinc-200', 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700')}`} title="Log interaction">
+                          <MessageSquarePlus size={14} className={`sm:w-4 sm:h-4 ${t('text-zinc-400', 'text-zinc-500')}`} /> Log
+                        </button>
+                        
+                        <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity mt-1 sm:mt-0">
+                          <button onClick={() => openEditContactModal(contact)} className={`p-1.5 sm:p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-blue-500 hover:bg-blue-50', 'text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10')}`} title="Edit Contact">
                             <Pencil size={14} />
                           </button>
-                          <button onClick={() => setViewingHistoryFor(contact)} className={`p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-blue-500 hover:bg-blue-50', 'text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10')}`} title="View history">
+                          <button onClick={() => setViewingHistoryFor(contact)} className={`p-1.5 sm:p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-blue-500 hover:bg-blue-50', 'text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10')}`} title="View history">
                             <History size={14} />
                           </button>
-                          <button onClick={() => setContactToDelete(contact)} className={`p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-rose-500 hover:bg-rose-50', 'text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10')}`} title="Remove connection">
+                          <button onClick={() => setContactToDelete(contact)} className={`p-1.5 sm:p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-rose-500 hover:bg-rose-50', 'text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10')}`} title="Remove connection">
                             <Trash2 size={14} />
                           </button>
                         </div>
