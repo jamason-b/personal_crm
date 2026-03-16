@@ -688,29 +688,29 @@
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>First Name</label>
-                      <input type="text" required value={newFirstName} onChange={(e) => setNewFirstName(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
+                      <input type="text" required value={newFirstName} onChange={(e) => setNewFirstName(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                     </div>
                     <div className="flex-1">
                       <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Last Name</label>
-                      <input type="text" value={newLastName} onChange={(e) => setNewLastName(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
+                      <input type="text" value={newLastName} onChange={(e) => setNewLastName(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                     </div>
                   </div>
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Group</label>
-                      <select value={newTag} onChange={(e) => setNewTag(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`}>
+                      <select value={newTag} onChange={(e) => setNewTag(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`}>
                         <option value="">None</option>
                         {tags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
                       </select>
                     </div>
                     <div className="flex-1">
                       <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Target Freq. (Days)</label>
-                      <input type="number" min="1" required value={newTargetFreq} onChange={(e) => setNewTargetFreq(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
+                      <input type="number" min="1" required value={newTargetFreq} onChange={(e) => setNewTargetFreq(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                     </div>
                   </div>
                   <div>
                     <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Birthday <span className={`font-normal ${t('text-zinc-400', 'text-zinc-500')}`}>(Optional)</span></label>
-                    <input type="date" value={newBirthday} onChange={(e) => setNewBirthday(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
+                    <input type="date" value={newBirthday} onChange={(e) => setNewBirthday(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
                   </div>
                   <div className="mt-8 flex justify-end gap-3">
                     <button type="button" onClick={() => setIsAddModalOpen(false)} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
@@ -730,29 +730,29 @@
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>First Name</label>
-                      <input type="text" required value={editingContactDetails.firstName} onChange={(e) => setEditingContactDetails({...editingContactDetails, firstName: e.target.value})} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
+                      <input type="text" required value={editingContactDetails.firstName} onChange={(e) => setEditingContactDetails({...editingContactDetails, firstName: e.target.value})} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                     </div>
                     <div className="flex-1">
                       <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Last Name</label>
-                      <input type="text" value={editingContactDetails.lastName} onChange={(e) => setEditingContactDetails({...editingContactDetails, lastName: e.target.value})} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
+                      <input type="text" value={editingContactDetails.lastName} onChange={(e) => setEditingContactDetails({...editingContactDetails, lastName: e.target.value})} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                     </div>
                   </div>
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Group</label>
-                      <select value={editingContactDetails.tag} onChange={(e) => setEditingContactDetails({...editingContactDetails, tag: e.target.value})} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`}>
+                      <select value={editingContactDetails.tag} onChange={(e) => setEditingContactDetails({...editingContactDetails, tag: e.target.value})} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`}>
                         <option value="">None</option>
                         {tags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
                       </select>
                     </div>
                     <div className="flex-1">
                       <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Target Freq. (Days)</label>
-                      <input type="number" min="1" required value={editingContactDetails.targetFrequency} onChange={(e) => setEditingContactDetails({...editingContactDetails, targetFrequency: e.target.value})} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
+                      <input type="number" min="1" required value={editingContactDetails.targetFrequency} onChange={(e) => setEditingContactDetails({...editingContactDetails, targetFrequency: e.target.value})} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                     </div>
                   </div>
                   <div>
                     <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Birthday <span className={`font-normal ${t('text-zinc-400', 'text-zinc-500')}`}>(Optional)</span></label>
-                    <input type="date" value={editingContactDetails.birthday || ''} onChange={(e) => setEditingContactDetails({...editingContactDetails, birthday: e.target.value})} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
+                    <input type="date" value={editingContactDetails.birthday || ''} onChange={(e) => setEditingContactDetails({...editingContactDetails, birthday: e.target.value})} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
                   </div>
                   <div className="mt-8 flex justify-end gap-3">
                     <button type="button" onClick={() => setEditingContactDetails(null)} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
@@ -777,7 +777,7 @@
                   ))}
                 </div>
                 <form onSubmit={handleAddTag} className="flex gap-2">
-                  <input type="text" placeholder="New group name..." value={newTagInput} onChange={(e) => setNewTagInput(e.target.value)} className={`flex-1 px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
+                  <input type="text" placeholder="New group name..." value={newTagInput} onChange={(e) => setNewTagInput(e.target.value)} className={`flex-1 px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                   <button type="submit" disabled={!newTagInput.trim()} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('bg-zinc-900 text-white', 'bg-white text-zinc-900 disabled:opacity-50')}`}>Add</button>
                 </form>
                 <div className="mt-6 flex justify-end">
@@ -794,10 +794,10 @@
                 <h2 className={`text-xl font-medium mb-1 ${t('text-zinc-900', 'text-white')}`}>Log Group Interaction</h2>
                 <p className={`text-sm mb-5 ${t('text-zinc-500', 'text-zinc-400')}`}>Select multiple people to log the same note.</p>
                 
-                <form onSubmit={handleMultiLogSubmit} className="space-y-4 flex-1 flex flex-col overflow-hidden">
-                  <div className="flex flex-col flex-1 min-h-[150px] max-h-[200px]">
-                    <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Who was there?</label>
-                    <input type="text" placeholder="Search contacts..." value={multiLogSearch} onChange={e => setMultiLogSearch(e.target.value)} className={`mb-2 block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white', 'border-zinc-700 bg-zinc-800/50 text-white')}`} />
+                <form onSubmit={handleMultiLogSubmit} className="space-y-4 flex-1 flex flex-col min-h-0">
+                  <div className="flex flex-col flex-1 min-h-[150px]">
+                    <label className={`block text-sm font-medium mb-1 shrink-0 ${t('text-zinc-700', 'text-zinc-300')}`}>Who was there?</label>
+                    <input type="text" placeholder="Search contacts..." value={multiLogSearch} onChange={e => setMultiLogSearch(e.target.value)} className={`mb-2 shrink-0 block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                     <div className={`flex-1 overflow-y-auto border rounded-xl p-2 ${t('border-zinc-200 bg-zinc-50', 'border-zinc-700 bg-zinc-800/30')}`}>
                       {contacts.filter(c => `${c.firstName} ${c.lastName}`.toLowerCase().includes(multiLogSearch.toLowerCase())).map(c => (
                         <div 
@@ -818,20 +818,20 @@
                         </div>
                       ))}
                     </div>
-                    <div className={`text-xs mt-1.5 font-medium ${t('text-zinc-500', 'text-zinc-400')}`}>
+                    <div className={`text-xs mt-1.5 shrink-0 font-medium ${t('text-zinc-500', 'text-zinc-400')}`}>
                       {multiLogSelectedIds.length} person(s) selected
                     </div>
                   </div>
                   
-                  <div>
+                  <div className="shrink-0">
                     <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Date</label>
-                    <input type="date" required value={interactionDate} max={new Date().toISOString().split('T')[0]} onChange={(e) => setInteractionDate(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white', 'border-zinc-700 bg-zinc-800/50 text-white [color-scheme:dark]')}`} />
+                    <input type="date" required value={interactionDate} max={new Date().toISOString().split('T')[0]} onChange={(e) => setInteractionDate(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
                   </div>
-                  <div>
+                  <div className="shrink-0">
                     <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Note <span className={`font-normal ${t('text-zinc-400', 'text-zinc-500')}`}>(Optional)</span></label>
-                    <textarea rows="2" placeholder="What did you talk about?" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm resize-none ${t('border-zinc-200 bg-zinc-50 focus:bg-white', 'border-zinc-700 bg-zinc-800/50 text-white')}`} />
+                    <textarea rows="2" placeholder="What did you talk about?" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm resize-none ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                   </div>
-                  <div className="mt-4 pt-2 flex justify-end gap-3">
+                  <div className="mt-4 pt-2 flex justify-end gap-3 shrink-0">
                     <button type="button" onClick={() => setIsMultiLogModalOpen(false)} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
                     <button type="submit" disabled={multiLogSelectedIds.length === 0} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200 disabled:opacity-50')}`}>Save Interaction</button>
                   </div>
@@ -849,11 +849,11 @@
                 <form onSubmit={handleLogInteraction} className="space-y-4">
                   <div>
                     <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Date</label>
-                    <input type="date" required value={interactionDate} max={new Date().toISOString().split('T')[0]} onChange={(e) => setInteractionDate(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white', 'border-zinc-700 bg-zinc-800/50 text-white [color-scheme:dark]')}`} />
+                    <input type="date" required value={interactionDate} max={new Date().toISOString().split('T')[0]} onChange={(e) => setInteractionDate(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
                   </div>
                   <div>
                     <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Note <span className={`font-normal ${t('text-zinc-400', 'text-zinc-500')}`}>(Optional)</span></label>
-                    <textarea rows="3" placeholder="What did you talk about?" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm resize-none ${t('border-zinc-200 bg-zinc-50 focus:bg-white', 'border-zinc-700 bg-zinc-800/50 text-white')}`} />
+                    <textarea rows="3" placeholder="What did you talk about?" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm resize-none ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                   </div>
                   <div className="mt-8 flex justify-end gap-3">
                     <button type="button" onClick={() => setLoggingInteractionFor(null)} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
@@ -925,11 +925,11 @@
                 <form onSubmit={handleSaveEditInteraction} className="space-y-4">
                   <div>
                     <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Date</label>
-                    <input type="date" required value={interactionDate} max={new Date().toISOString().split('T')[0]} onChange={(e) => setInteractionDate(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white', 'border-zinc-700 bg-zinc-800/50 text-white [color-scheme:dark]')}`} />
+                    <input type="date" required value={interactionDate} max={new Date().toISOString().split('T')[0]} onChange={(e) => setInteractionDate(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
                   </div>
                   <div>
                     <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Note <span className={`font-normal ${t('text-zinc-400', 'text-zinc-500')}`}>(Optional)</span></label>
-                    <textarea rows="3" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:ring-2 sm:text-sm resize-none ${t('border-zinc-200 bg-zinc-50 focus:bg-white', 'border-zinc-700 bg-zinc-800/50 text-white')}`} />
+                    <textarea rows="3" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm resize-none ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                   </div>
                   <div className="mt-8 flex justify-end gap-3">
                     <button type="button" onClick={() => setEditingInteraction(null)} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
