@@ -28,11 +28,14 @@
       ctx.fillStyle = '#18181b'; // Tailwind zinc-900 color
       ctx.fillRect(0, 0, 180, 180);
       
-      // Draw the emoji in the center
-      ctx.font = '90px Arial';
+      // Draw the emoji completely filling the center
+      ctx.font = '120px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('👥', 90, 95);
+      
+      // Placed exactly in the middle. Y is slightly offset (100 instead of 90) 
+      // because emojis naturally sit a tiny bit high on the baseline.
+      ctx.fillText('👥', 90, 100);
       
       // Convert to PNG and tell iOS to use it as the app icon
       const link = document.createElement('link');
