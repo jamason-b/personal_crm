@@ -13,37 +13,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="CRM">
   
-  <!-- Custom Browser Icon (Favicon) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👥</text></svg>">
-  
-  <!-- Generate iOS Home Screen Icon Dynamically -->
-  <script>
-    (function() {
-      const canvas = document.createElement('canvas');
-      canvas.width = 180;
-      canvas.height = 180;
-      const ctx = canvas.getContext('2d');
-      
-      // Draw a sleek dark background
-      ctx.fillStyle = '#18181b'; // Tailwind zinc-900 color
-      ctx.fillRect(0, 0, 180, 180);
-      
-      // Draw the emoji completely filling the center
-      // Increased from 120px to 160px to match the "money bag" proportions
-      ctx.font = '160px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      
-      // Placed exactly in the middle. Y is adjusted to 95 to optically center it
-      ctx.fillText('👥', 90, 95);
-      
-      // Convert to PNG and tell iOS to use it as the app icon
-      const link = document.createElement('link');
-      link.rel = 'apple-touch-icon';
-      link.href = canvas.toDataURL('image/png');
-      document.head.appendChild(link);
-    })();
-  </script>
+  <!-- Custom Browser Icon & iOS Home Screen Icon -->
+  <link rel="icon" href="app-icon.jpg">
+  <link rel="apple-touch-icon" href="app-icon.jpg">
   
   <!-- Load React and ReactDOM -->
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
