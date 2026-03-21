@@ -42,11 +42,12 @@
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
     
     /* Mobile safe area padding for the bottom swipe bar */
-    .safe-pb { padding-bottom: calc(2rem + env(safe-area-inset-bottom)); }
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+    .safe-pb { padding-bottom: calc(5rem + env(safe-area-inset-bottom)); } /* Adjusted for bottom nav */
     
     /* Floating Action Button (FAB) Safe Placement */
     .fab-safe {
-      bottom: calc(2rem + env(safe-area-inset-bottom));
+      bottom: calc(5.5rem + env(safe-area-inset-bottom));
       right: 1.5rem;
     }
     @media (min-width: 640px) {
@@ -59,6 +60,13 @@
     /* Hide scrollbar for clean internal scrolling areas */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Toast Animation */
+    @keyframes slideUpFade {
+      0% { opacity: 0; transform: translate(-50%, 20px) scale(0.95); }
+      100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    }
+    .toast-enter { animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   </style>
 </head>
 <body>
@@ -115,9 +123,12 @@
     const Cloud = (p) => <Icon {...p}><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></Icon>;
     const Plus = (p) => <Icon {...p}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Icon>;
     const Check = (p) => <Icon {...p}><polyline points="20 6 9 17 4 12"/></Icon>;
-    const ChevronLeft = (p) => <Icon {...p}><polyline points="15 18 9 12 15 6"/></Icon>;
+    const RefreshCcw = (p) => <Icon {...p}><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/></Icon>;
+    const BarChart3 = (p) => <Icon {...p}><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></Icon>;
+    const UsersIcon = (p) => <Icon {...p}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Icon>;
 
     const DEFAULT_TAGS = ['Family', 'OG Friend', 'Mission Friend', 'School Friend'];
+    const DEFAULT_QUICK_ACTIVITIES = ['📱 Texted', '📞 Called', '☕️ Coffee', '🍽️ Meal', '👋 Hung out'];
 
     // ==========================================
     // 3. GLOBAL HELPERS
@@ -149,8 +160,8 @@
       return `${Math.floor(diffDays / 365)} yrs ago`;
     };
 
-    const isBirthdayUpcoming = (birthdayStr) => {
-      if (!birthdayStr) return false;
+    const getDaysUntilBirthday = (birthdayStr) => {
+      if (!birthdayStr) return Infinity;
       const today = new Date();
       today.setHours(0,0,0,0);
       const [year, month, day] = birthdayStr.split('-');
@@ -158,8 +169,21 @@
       if (bdayThisYear < today && (today - bdayThisYear) > 1000 * 60 * 60 * 24) {
          bdayThisYear.setFullYear(today.getFullYear() + 1);
       }
-      const diffDays = Math.round((bdayThisYear - today) / (1000 * 60 * 60 * 24));
-      return diffDays >= 0 && diffDays <= 7;
+      return Math.round((bdayThisYear - today) / (1000 * 60 * 60 * 24));
+    };
+
+    const isBirthdayUpcoming = (birthdayStr) => {
+      const days = getDaysUntilBirthday(birthdayStr);
+      return days >= 0 && days <= 7;
+    };
+
+    const getAvatarColorClass = (fullName, isDarkMode) => {
+      const colors = isDarkMode 
+        ? ['bg-green-500/20 text-green-300', 'bg-teal-500/20 text-teal-300', 'bg-cyan-500/20 text-cyan-300', 'bg-blue-500/20 text-blue-300', 'bg-indigo-500/20 text-indigo-300', 'bg-purple-500/20 text-purple-300']
+        : ['bg-green-100 text-green-700', 'bg-teal-100 text-teal-700', 'bg-cyan-100 text-cyan-700', 'bg-blue-100 text-blue-700', 'bg-indigo-100 text-indigo-700', 'bg-purple-100 text-purple-700'];
+      let hash = 0;
+      for (let i = 0; i < fullName.length; i++) hash = fullName.charCodeAt(i) + ((hash << 5) - hash);
+      return colors[Math.abs(hash) % colors.length];
     };
 
     // ==========================================
@@ -240,12 +264,7 @@
         avatarColorClass = t('bg-rose-100 text-rose-700', 'bg-rose-500/20 text-rose-300');
       } else {
         // Fallback hash colors for healthy contacts
-        const colors = isDarkMode 
-          ? ['bg-green-500/20 text-green-300', 'bg-teal-500/20 text-teal-300', 'bg-cyan-500/20 text-cyan-300', 'bg-blue-500/20 text-blue-300', 'bg-indigo-500/20 text-indigo-300', 'bg-purple-500/20 text-purple-300']
-          : ['bg-green-100 text-green-700', 'bg-teal-100 text-teal-700', 'bg-cyan-100 text-cyan-700', 'bg-blue-100 text-blue-700', 'bg-indigo-100 text-indigo-700', 'bg-purple-100 text-purple-700'];
-        let hash = 0;
-        for (let i = 0; i < fullName.length; i++) hash = fullName.charCodeAt(i) + ((hash << 5) - hash);
-        avatarColorClass = colors[Math.abs(hash) % colors.length];
+        avatarColorClass = getAvatarColorClass(fullName, isDarkMode);
       }
 
       return (
@@ -333,21 +352,35 @@
       const isInitialDataLoad = useRef(true);
       const isRemoteUpdate = useRef(false);
 
+      const [activeTab, setActiveTab] = useState('contacts'); // 'contacts' or 'stats'
+
       const [isDarkMode, setIsDarkMode] = useState(false);
       const [tags, setTags] = useState(DEFAULT_TAGS);
+      const [quickActivities, setQuickActivities] = useState(DEFAULT_QUICK_ACTIVITIES);
       const [contacts, setContacts] = useState([]);
 
       const [searchQuery, setSearchQuery] = useState('');
       const [filterTag, setFilterTag] = useState('All');
       const [sortOrder, setSortOrder] = useState('oldest');
 
-      // Modals
+      // Modals & Interactivity
       const [isAddModalOpen, setIsAddModalOpen] = useState(false);
       const [isManageTagsOpen, setIsManageTagsOpen] = useState(false);
+      const [isManageActivitiesOpen, setIsManageActivitiesOpen] = useState(false);
       const [contactToDelete, setContactToDelete] = useState(null);
       const [loggingInteractionFor, setLoggingInteractionFor] = useState(null);
       const [viewingHistoryFor, setViewingHistoryFor] = useState(null);
       
+      // Toast System
+      const [toastMsg, setToastMsg] = useState('');
+      const toastTimeoutRef = useRef(null);
+      
+      const showToast = (msg) => {
+        setToastMsg(msg);
+        if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+        toastTimeoutRef.current = setTimeout(() => setToastMsg(''), 3000);
+      };
+
       // Multi-Log Feature State
       const [isMultiLogModalOpen, setIsMultiLogModalOpen] = useState(false);
       const [multiLogSelectedIds, setMultiLogSelectedIds] = useState([]);
@@ -359,6 +392,7 @@
       const [newTargetFreq, setNewTargetFreq] = useState(30);
       const [newBirthday, setNewBirthday] = useState('');
       const [newTagInput, setNewTagInput] = useState('');
+      const [newActivityInput, setNewActivityInput] = useState('');
       
       const [interactionDate, setInteractionDate] = useState('');
       const [interactionNote, setInteractionNote] = useState('');
@@ -394,6 +428,7 @@
               
               setContacts(data.contacts || []);
               setTags(data.tags || DEFAULT_TAGS);
+              setQuickActivities(data.quickActivities || DEFAULT_QUICK_ACTIVITIES);
               setIsDarkMode(data.isDarkMode !== undefined ? data.isDarkMode : false);
             }
           }
@@ -421,6 +456,7 @@
         db.collection('crm_data').doc(SHARED_DOC_ID).set({
           contacts,
           tags,
+          quickActivities,
           isDarkMode,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true })
@@ -432,7 +468,7 @@
           setSyncStatus('Sync Error');
         });
 
-      }, [contacts, tags, isDarkMode, dataLoading]);
+      }, [contacts, tags, quickActivities, isDarkMode, dataLoading]);
 
       // Global Key Handler
       useEffect(() => {
@@ -440,6 +476,7 @@
           if (e.key === 'Escape') {
             setIsAddModalOpen(false);
             setIsManageTagsOpen(false);
+            setIsManageActivitiesOpen(false);
             setContactToDelete(null);
             setLoggingInteractionFor(null);
             setViewingHistoryFor(null);
@@ -491,6 +528,7 @@
 
         return filtered.sort((a, b) => {
           if (sortOrder === 'alphabetical') return a.firstName.localeCompare(b.firstName);
+          if (sortOrder === 'birthday') return getDaysUntilBirthday(a.birthday) - getDaysUntilBirthday(b.birthday);
           
           const latestA = getLatestInteraction(a);
           const latestB = getLatestInteraction(b);
@@ -518,6 +556,7 @@
           interactions: [{ id: crypto.randomUUID(), date: new Date().toISOString(), note: 'Added to connections' }]
         }]);
         
+        showToast(`${newFirstName.trim()} added!`);
         setNewFirstName(''); setNewLastName(''); setNewTargetFreq(30); setNewBirthday(''); setIsAddModalOpen(false);
       };
 
@@ -527,10 +566,15 @@
 
         setContacts(contacts.map(c => c.id === editingContactDetails.id ? { ...c, ...editingContactDetails, targetFrequency: Number(editingContactDetails.targetFrequency) } : c));
         setEditingContactDetails(null);
+        showToast("Profile updated");
       };
 
       const openEditContactModal = (contact) => {
         setEditingContactDetails({ ...contact });
+      };
+
+      const appendQuickActivity = (activityText) => {
+        setInteractionNote(prev => prev ? `${prev} ${activityText}` : activityText);
       };
 
       const handleLogInteraction = (e) => {
@@ -545,6 +589,7 @@
           interactions: [...c.interactions, { id: crypto.randomUUID(), date: newDate.toISOString(), note: interactionNote.trim() }] 
         } : c));
         
+        showToast(`Interaction with ${loggingInteractionFor.firstName} logged!`);
         setLoggingInteractionFor(null);
       };
 
@@ -565,6 +610,7 @@
           return c;
         }));
 
+        showToast(`Group interaction logged for ${multiLogSelectedIds.length} people!`);
         setIsMultiLogModalOpen(false);
       };
 
@@ -591,16 +637,18 @@
 
         setEditingInteraction(null);
         setViewingHistoryFor(contacts.find(c => c.id === editingInteraction.contactId));
+        showToast("Note updated");
       };
 
       const handleDeleteInteraction = (contactId, interactionId) => {
-        if(confirm("Are you sure you want to delete this interaction?")) {
+        if(confirm("Are you sure you want to delete this note?")) {
            const updatedContacts = contacts.map(c => c.id === contactId ? {
              ...c,
              interactions: c.interactions.filter(i => i.id !== interactionId)
            } : c);
            setContacts(updatedContacts);
            setViewingHistoryFor(updatedContacts.find(c => c.id === contactId));
+           showToast("Note deleted");
         }
       };
 
@@ -621,10 +669,12 @@
       const handleDeleteContact = () => {
         if (contactToDelete) {
           setContacts(contacts.filter(c => c.id !== contactToDelete.id));
+          showToast(`${contactToDelete.firstName} removed`);
           setContactToDelete(null);
         }
       };
 
+      // Tag Management
       const handleAddTag = (e) => {
         e.preventDefault();
         if (newTagInput.trim() && !tags.includes(newTagInput.trim())) {
@@ -639,6 +689,20 @@
         if (filterTag === tagToDelete) setFilterTag('All');
       };
 
+      // Activity Management
+      const handleAddActivity = (e) => {
+        e.preventDefault();
+        if (newActivityInput.trim() && !quickActivities.includes(newActivityInput.trim())) {
+          setQuickActivities([...quickActivities, newActivityInput.trim()]);
+          setNewActivityInput('');
+        }
+      };
+
+      const handleDeleteActivity = (actToDelete) => {
+        setQuickActivities(quickActivities.filter(a => a !== actToDelete));
+      };
+
+      // Data IO
       const handleExportData = () => {
         const dataStr = JSON.stringify(contacts, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
@@ -646,6 +710,7 @@
         const link = document.createElement('a');
         link.href = url; link.download = `personal-crm-backup-${new Date().toISOString().split('T')[0]}.json`;
         document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+        showToast("Backup exported!");
       };
 
       const handleImportData = (e) => {
@@ -655,20 +720,60 @@
         reader.onload = (event) => {
           try {
             const importedData = JSON.parse(event.target.result);
-            if (Array.isArray(importedData)) setContacts(importedData);
-          } catch (error) { console.error('Failed to parse backup'); }
+            if (Array.isArray(importedData)) {
+               setContacts(importedData);
+               showToast("Backup imported successfully!");
+            }
+          } catch (error) { 
+            console.error('Failed to parse backup');
+            showToast("Error importing file");
+          }
         };
         reader.readAsText(file);
         e.target.value = '';
       };
+
+      // Calculations for Stats Page
+      const stats = useMemo(() => {
+        let red = 0, yellow = 0, green = 0, never = 0;
+        let totalInteractions = 0;
+        let thisMonthInteractions = 0;
+
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+
+        contacts.forEach(c => {
+          const ratio = getAttentionRatio(c);
+          if (ratio === Infinity) never++;
+          else if (ratio > 1) red++;
+          else if (ratio > 0.75) yellow++;
+          else green++;
+
+          if (c.interactions) {
+            totalInteractions += c.interactions.length;
+            c.interactions.forEach(i => {
+              const d = new Date(i.date);
+              if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) {
+                thisMonthInteractions++;
+              }
+            });
+          }
+        });
+
+        return { red, yellow, green, never, totalInteractions, thisMonthInteractions, total: contacts.length };
+      }, [contacts]);
+
 
       if (dataLoading) {
         return <div className="min-h-[100dvh] bg-[#FAFAFA] flex items-center justify-center font-sans text-zinc-500">Loading your CRM...</div>;
       }
 
       return (
-        <div className={`min-h-[100dvh] font-sans p-4 sm:p-10 safe-pb transition-colors duration-200 ${t('bg-[#FAFAFA] text-zinc-800', 'bg-zinc-950 text-zinc-100')}`}>
-          <div className="max-w-3xl mx-auto">
+        <div className={`min-h-[100dvh] font-sans safe-pb transition-colors duration-200 ${t('bg-[#FAFAFA] text-zinc-800', 'bg-zinc-950 text-zinc-100')}`}>
+          
+          {/* Main Content Area */}
+          <div className="p-4 sm:p-10 max-w-3xl mx-auto pb-24">
             
             <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-10">
               <div>
@@ -682,7 +787,7 @@
                         : t('bg-emerald-50 text-emerald-600', 'bg-emerald-500/10 text-emerald-400')
                   }`}>
                     <Cloud size={14} className={syncStatus === 'Syncing...' ? 'animate-pulse' : ''} />
-                    <span>{syncStatus}</span>
+                    <span className="hidden sm:inline-block">{syncStatus}</span>
                   </div>
                 </div>
                 <p className={`mt-1 text-sm ${t('text-zinc-500', 'text-zinc-400')}`}>Stay mindful of your relationships.</p>
@@ -701,79 +806,182 @@
                 </button>
                 
                 <button onClick={() => setIsAddModalOpen(true)} className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors shadow-sm border ${t('bg-zinc-900 text-white border-transparent hover:bg-zinc-800', 'bg-zinc-800 text-zinc-100 border-zinc-700 hover:bg-zinc-700')}`}>
-                  <UserPlus size={16} /> Add Person
+                  <UserPlus size={16} /> <span className="hidden sm:inline-block">Add Person</span>
                 </button>
               </div>
             </header>
 
-            <div className="flex flex-col sm:flex-row gap-3 mb-6">
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className={`h-4 w-4 ${t('text-zinc-400', 'text-zinc-500')}`} />
+            {/* VIEWS: Contacts List vs Stats Dashboard */}
+            {activeTab === 'contacts' ? (
+              <div>
+                <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search className={`h-4 w-4 ${t('text-zinc-400', 'text-zinc-500')}`} />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search names, notes, tags, or dates (e.g. 10/24)..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className={`block w-full pl-10 pr-3 py-2.5 border rounded-2xl leading-5 focus:outline-none focus:ring-2 transition-shadow sm:text-sm shadow-sm ${t('bg-white border-zinc-200 placeholder-zinc-400 focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900', 'bg-zinc-900 border-zinc-800 placeholder-zinc-500 focus:ring-zinc-100 focus:border-zinc-100 text-white')}`}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <ArrowUpDown size={16} className={t('text-zinc-400', 'text-zinc-500')} />
+                    <select
+                      value={sortOrder}
+                      onChange={(e) => setSortOrder(e.target.value)}
+                      className={`py-2.5 px-3 border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 cursor-pointer transition-colors shadow-sm ${t('bg-white border-zinc-200 focus:ring-zinc-900 text-zinc-700', 'bg-zinc-900 border-zinc-800 focus:ring-zinc-100 text-zinc-300')}`}
+                    >
+                      <option value="oldest">Needs Attention</option>
+                      <option value="recent">Recently Contacted</option>
+                      <option value="alphabetical">Alphabetical</option>
+                      <option value="birthday">Upcoming Birthdays</option>
+                    </select>
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  placeholder="Search names, notes, tags, or dates (e.g. 10/24)..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`block w-full pl-10 pr-3 py-2.5 border rounded-2xl leading-5 focus:outline-none focus:ring-2 transition-shadow sm:text-sm shadow-sm ${t('bg-white border-zinc-200 placeholder-zinc-400 focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900', 'bg-zinc-900 border-zinc-800 placeholder-zinc-500 focus:ring-zinc-100 focus:border-zinc-100 text-white')}`}
-                />
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <ArrowUpDown size={16} className={t('text-zinc-400', 'text-zinc-500')} />
-                <select
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value)}
-                  className={`py-2.5 px-3 border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 cursor-pointer transition-colors shadow-sm ${t('bg-white border-zinc-200 focus:ring-zinc-900 text-zinc-700', 'bg-zinc-900 border-zinc-800 focus:ring-zinc-100 text-zinc-300')}`}
-                >
-                  <option value="oldest">Needs Attention</option>
-                  <option value="recent">Recently Contacted</option>
-                  <option value="alphabetical">Alphabetical</option>
-                </select>
-              </div>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-2 mb-8">
-              <button onClick={() => setFilterTag('All')} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${filterTag === 'All' ? t('bg-zinc-900 text-white', 'bg-zinc-100 text-zinc-900') : t('bg-zinc-100 text-zinc-600 hover:bg-zinc-200', 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700')}`}>All</button>
-              {tags.map(tag => (
-                <button key={tag} onClick={() => setFilterTag(tag)} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${filterTag === tag ? t('bg-zinc-900 text-white', 'bg-zinc-100 text-zinc-900') : t('bg-zinc-100 text-zinc-600 hover:bg-zinc-200', 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700')}`}>{tag}</button>
-              ))}
-              <button onClick={() => setIsManageTagsOpen(true)} className={`p-1.5 rounded-full transition-colors ${t('text-zinc-400 hover:bg-zinc-200', 'text-zinc-500 hover:bg-zinc-800')}`} title="Manage Groups">
-                <Settings size={14} />
-              </button>
-            </div>
-
-            <div className="space-y-3 pb-20 sm:pb-0 overflow-x-hidden">
-              {sortedAndFilteredContacts.length === 0 ? (
-                <div className={`text-center py-16 px-4 border border-dashed rounded-3xl ${t('border-zinc-200 bg-white', 'border-zinc-800 bg-zinc-900')}`}>
-                  <CalendarDays className={`mx-auto h-10 w-10 mb-3 ${t('text-zinc-300', 'text-zinc-700')}`} />
-                  <h3 className={`text-sm font-medium ${t('text-zinc-900', 'text-zinc-100')}`}>No connections found</h3>
+                <div className="flex flex-wrap items-center gap-2 mb-8">
+                  <button onClick={() => setFilterTag('All')} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${filterTag === 'All' ? t('bg-zinc-900 text-white', 'bg-zinc-100 text-zinc-900') : t('bg-zinc-100 text-zinc-600 hover:bg-zinc-200', 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700')}`}>All</button>
+                  {tags.map(tag => (
+                    <button key={tag} onClick={() => setFilterTag(tag)} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${filterTag === tag ? t('bg-zinc-900 text-white', 'bg-zinc-100 text-zinc-900') : t('bg-zinc-100 text-zinc-600 hover:bg-zinc-200', 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700')}`}>{tag}</button>
+                  ))}
+                  <button onClick={() => setIsManageTagsOpen(true)} className={`p-1.5 rounded-full transition-colors ${t('text-zinc-400 hover:bg-zinc-200', 'text-zinc-500 hover:bg-zinc-800')}`} title="Manage Groups">
+                    <Settings size={14} />
+                  </button>
                 </div>
-              ) : (
-                sortedAndFilteredContacts.map(contact => (
-                  <ContactCard 
-                    key={contact.id} 
-                    contact={contact} 
-                    t={t} 
-                    isDarkMode={isDarkMode} 
-                    openLogModal={openLogModal} 
-                    openEditContactModal={openEditContactModal} 
-                    setViewingHistoryFor={setViewingHistoryFor} 
-                    setContactToDelete={setContactToDelete} 
-                  />
-                ))
-              )}
-            </div>
+
+                <div className="space-y-3 overflow-x-hidden">
+                  {contacts.length === 0 ? (
+                    // Super Empty State (No contacts at all)
+                    <div className={`text-center py-16 px-4 border border-dashed rounded-3xl ${t('border-zinc-200 bg-white', 'border-zinc-800 bg-zinc-900')}`}>
+                      <UserPlus className={`mx-auto h-12 w-12 mb-4 ${t('text-zinc-300', 'text-zinc-700')}`} />
+                      <h3 className={`text-lg font-semibold mb-2 ${t('text-zinc-900', 'text-zinc-100')}`}>Build your circle</h3>
+                      <p className={`text-sm mb-6 max-w-sm mx-auto ${t('text-zinc-500', 'text-zinc-400')}`}>Start tracking interactions and stay connected with the people who matter most.</p>
+                      <button onClick={() => setIsAddModalOpen(true)} className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors shadow-sm border ${t('bg-zinc-900 text-white border-transparent hover:bg-zinc-800', 'bg-white text-zinc-900 border-transparent hover:bg-zinc-200')}`}>
+                        Add Your First Person
+                      </button>
+                    </div>
+                  ) : sortedAndFilteredContacts.length === 0 ? (
+                    // Search/Filter Empty State
+                    <div className={`text-center py-16 px-4 border border-dashed rounded-3xl ${t('border-zinc-200 bg-white', 'border-zinc-800 bg-zinc-900')}`}>
+                      <Search className={`mx-auto h-10 w-10 mb-3 ${t('text-zinc-300', 'text-zinc-700')}`} />
+                      <h3 className={`text-sm font-medium mb-1 ${t('text-zinc-900', 'text-zinc-100')}`}>No matches found</h3>
+                      <p className={`text-sm mb-4 ${t('text-zinc-500', 'text-zinc-400')}`}>Try adjusting your search or filters.</p>
+                      <button onClick={() => { setSearchQuery(''); setFilterTag('All'); }} className={`text-sm font-semibold ${t('text-blue-600 hover:text-blue-800', 'text-blue-400 hover:text-blue-300')}`}>
+                        Clear Filters
+                      </button>
+                    </div>
+                  ) : (
+                    sortedAndFilteredContacts.map(contact => (
+                      <ContactCard 
+                        key={contact.id} 
+                        contact={contact} 
+                        t={t} 
+                        isDarkMode={isDarkMode} 
+                        openLogModal={openLogModal} 
+                        openEditContactModal={openEditContactModal} 
+                        setViewingHistoryFor={setViewingHistoryFor} 
+                        setContactToDelete={setContactToDelete} 
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className={`p-6 rounded-3xl border shadow-sm ${t('bg-white border-zinc-200', 'bg-zinc-900 border-zinc-800')}`}>
+                    <div className={`text-sm font-medium mb-2 ${t('text-zinc-500', 'text-zinc-400')}`}>Total Connections</div>
+                    <div className={`text-4xl font-light ${t('text-zinc-900', 'text-white')}`}>{stats.total}</div>
+                  </div>
+                  <div className={`p-6 rounded-3xl border shadow-sm ${t('bg-white border-zinc-200', 'bg-zinc-900 border-zinc-800')}`}>
+                    <div className={`text-sm font-medium mb-2 ${t('text-zinc-500', 'text-zinc-400')}`}>This Month's Logs</div>
+                    <div className={`text-4xl font-light ${t('text-zinc-900', 'text-white')}`}>{stats.thisMonthInteractions}</div>
+                  </div>
+                </div>
+
+                <div className={`p-6 rounded-3xl border shadow-sm mb-8 ${t('bg-white border-zinc-200', 'bg-zinc-900 border-zinc-800')}`}>
+                  <h3 className={`text-base font-semibold mb-6 ${t('text-zinc-900', 'text-white')}`}>Relationship Health</h3>
+                  
+                  <div className="space-y-5">
+                    <div>
+                      <div className="flex justify-between mb-1.5">
+                        <span className="text-sm font-medium text-emerald-500">In Touch (Healthy)</span>
+                        <span className={`text-sm font-semibold ${t('text-zinc-700', 'text-zinc-300')}`}>{stats.green}</span>
+                      </div>
+                      <div className={`w-full h-3 rounded-full overflow-hidden ${t('bg-zinc-100', 'bg-zinc-800')}`}>
+                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${stats.total ? (stats.green / stats.total) * 100 : 0}%` }}></div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between mb-1.5">
+                        <span className="text-sm font-medium text-amber-500">Approaching Limit</span>
+                        <span className={`text-sm font-semibold ${t('text-zinc-700', 'text-zinc-300')}`}>{stats.yellow}</span>
+                      </div>
+                      <div className={`w-full h-3 rounded-full overflow-hidden ${t('bg-zinc-100', 'bg-zinc-800')}`}>
+                        <div className="h-full bg-amber-500 rounded-full" style={{ width: `${stats.total ? (stats.yellow / stats.total) * 100 : 0}%` }}></div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <div className="flex justify-between mb-1.5">
+                        <span className="text-sm font-medium text-rose-500">Needs Attention</span>
+                        <span className={`text-sm font-semibold ${t('text-zinc-700', 'text-zinc-300')}`}>{stats.red + stats.never}</span>
+                      </div>
+                      <div className={`w-full h-3 rounded-full overflow-hidden ${t('bg-zinc-100', 'bg-zinc-800')}`}>
+                        <div className="h-full bg-rose-500 rounded-full" style={{ width: `${stats.total ? ((stats.red + stats.never) / stats.total) * 100 : 0}%` }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           
+          {/* Bottom Navigation */}
+          <nav className={`fixed bottom-0 left-0 right-0 z-30 border-t pb-safe ${t('bg-white/80 border-zinc-200 backdrop-blur-md', 'bg-zinc-950/80 border-zinc-800 backdrop-blur-md')}`}>
+            <div className="flex justify-around items-center h-16 max-w-md mx-auto px-4">
+              <button 
+                onClick={() => setActiveTab('contacts')} 
+                className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors ${activeTab === 'contacts' ? t('text-zinc-900', 'text-white') : t('text-zinc-400 hover:text-zinc-600', 'text-zinc-500 hover:text-zinc-300')}`}
+              >
+                <UsersIcon size={24} className={activeTab === 'contacts' ? 'stroke-[2.5px]' : ''} />
+                <span className="text-[10px] font-semibold tracking-wide">People</span>
+              </button>
+              
+              <button 
+                onClick={() => setActiveTab('stats')} 
+                className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors ${activeTab === 'stats' ? t('text-zinc-900', 'text-white') : t('text-zinc-400 hover:text-zinc-600', 'text-zinc-500 hover:text-zinc-300')}`}
+              >
+                <BarChart3 size={24} className={activeTab === 'stats' ? 'stroke-[2.5px]' : ''} />
+                <span className="text-[10px] font-semibold tracking-wide">Stats</span>
+              </button>
+            </div>
+          </nav>
+
           {/* Multi-Log Floating Action Button */}
-          <button 
-            onClick={openMultiLogModal}
-            className={`fixed fab-safe z-40 p-4 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200 ${t('bg-zinc-900 text-white', 'bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700')}`}
-            title="Log Group Interaction"
-          >
-            <Plus size={24} />
-          </button>
+          {contacts.length > 0 && activeTab === 'contacts' && (
+            <button 
+              onClick={openMultiLogModal}
+              className={`fixed fab-safe z-40 p-4 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all duration-200 ${t('bg-zinc-900 text-white', 'bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700')}`}
+              title="Log Group Interaction"
+            >
+              <Plus size={24} />
+            </button>
+          )}
+
+          {/* Toast Notification */}
+          {toastMsg && (
+            <div className="fixed top-6 left-1/2 z-50 toast-enter">
+              <div className={`px-4 py-2.5 rounded-full shadow-xl border text-sm font-semibold flex items-center gap-2 ${t('bg-zinc-900 border-zinc-800 text-white', 'bg-zinc-100 border-zinc-200 text-zinc-900')}`}>
+                <CheckCircle2 size={16} className={t('text-emerald-400', 'text-emerald-600')} />
+                {toastMsg}
+              </div>
+            </div>
+          )}
 
           {/* Add Contact Modal */}
           {isAddModalOpen && (
@@ -882,6 +1090,30 @@
               </div>
             </div>
           )}
+
+          {/* Manage Quick Activities Modal */}
+          {isManageActivitiesOpen && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={(e) => handleBackdropClick(e, () => setIsManageActivitiesOpen(false))}>
+              <div className={`rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${t('bg-white', 'bg-zinc-900 border border-zinc-800')}`}>
+                <h2 className={`text-xl font-semibold mb-5 ${t('text-zinc-900', 'text-white')}`}>Manage Quick Activities</h2>
+                <div className="space-y-3 mb-6 max-h-60 overflow-y-auto no-scrollbar">
+                  {quickActivities.map(act => (
+                    <div key={act} className={`flex items-center justify-between p-3 rounded-xl border ${t('bg-zinc-50 border-zinc-200', 'bg-zinc-800/50 border-zinc-700')}`}>
+                      <span className={`text-sm font-semibold ${t('text-zinc-700', 'text-zinc-300')}`}>{act}</span>
+                      <button onClick={() => handleDeleteActivity(act)} className="p-1 text-zinc-400 hover:text-rose-500 rounded-md transition-colors"><Trash2 size={16} /></button>
+                    </div>
+                  ))}
+                </div>
+                <form onSubmit={handleAddActivity} className="flex gap-2">
+                  <input type="text" placeholder="New quick activity..." value={newActivityInput} onChange={(e) => setNewActivityInput(e.target.value)} className={`flex-1 px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
+                  <button type="submit" disabled={!newActivityInput.trim()} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('bg-zinc-900 text-white', 'bg-white text-zinc-900 disabled:opacity-50')}`}>Add</button>
+                </form>
+                <div className="mt-6 flex justify-end">
+                  <button onClick={() => setIsManageActivitiesOpen(false)} className={`px-4 py-2 text-sm font-semibold rounded-xl ${t('bg-zinc-100 hover:bg-zinc-200', 'bg-zinc-800 hover:bg-zinc-700 text-white')}`}>Done</button>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Multi-Log Group Interaction Modal */}
           {isMultiLogModalOpen && (
@@ -891,45 +1123,97 @@
                 <p className={`text-sm mb-5 ${t('text-zinc-500', 'text-zinc-400')}`}>Select multiple people to log the same note.</p>
                 
                 <form onSubmit={handleMultiLogSubmit} className="space-y-4 flex-1 flex flex-col min-h-0">
-                  <div className="flex flex-col flex-1 min-h-[150px]">
-                    <label className={`block text-sm font-medium mb-1 shrink-0 ${t('text-zinc-700', 'text-zinc-300')}`}>Who was there?</label>
-                    <input type="text" placeholder="Search contacts..." value={multiLogSearch} onChange={e => setMultiLogSearch(e.target.value)} className={`mb-2 shrink-0 block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
-                    <div className={`flex-1 overflow-y-auto border rounded-xl p-2 no-scrollbar ${t('border-zinc-200 bg-zinc-50', 'border-zinc-700 bg-zinc-800/30')}`}>
-                      {contacts.filter(c => `${c.firstName} ${c.lastName}`.toLowerCase().includes(multiLogSearch.toLowerCase())).map(c => (
-                        <div 
-                          key={c.id} 
-                          onClick={() => {
-                            if (multiLogSelectedIds.includes(c.id)) {
-                              setMultiLogSelectedIds(multiLogSelectedIds.filter(id => id !== c.id));
-                            } else {
-                              setMultiLogSelectedIds([...multiLogSelectedIds, c.id]);
-                            }
-                          }}
-                          className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${t('hover:bg-zinc-100', 'hover:bg-zinc-800/80')}`}
-                        >
-                          <div className={`w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 ${multiLogSelectedIds.includes(c.id) ? t('bg-zinc-900 border-zinc-900', 'bg-white border-white') : t('bg-white border-zinc-300', 'bg-zinc-900 border-zinc-600')}`}>
-                            {multiLogSelectedIds.includes(c.id) && <Check size={12} className={t('text-white', 'text-zinc-900')} />}
-                          </div>
-                          <span className={`text-sm font-medium select-none ${t('text-zinc-800', 'text-zinc-200')}`}>{c.firstName} {c.lastName}</span>
-                        </div>
-                      ))}
+                  <div className="flex flex-col flex-1 min-h-[220px]">
+                    <label className={`block text-sm font-medium mb-3 shrink-0 ${t('text-zinc-700', 'text-zinc-300')}`}>Who was there?</label>
+                    
+                    {/* Selected Chips */}
+                    {multiLogSelectedIds.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3 shrink-0 animate-in fade-in duration-200">
+                        {multiLogSelectedIds.map(id => {
+                          const c = contacts.find(c => c.id === id);
+                          if (!c) return null;
+                          return (
+                            <div key={id} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm border ${t('bg-zinc-900 text-white border-zinc-900', 'bg-zinc-100 text-zinc-900 border-zinc-100')}`}>
+                              {c.firstName}
+                              <div 
+                                onClick={(e) => { e.stopPropagation(); setMultiLogSelectedIds(multiLogSelectedIds.filter(sid => sid !== id)); }}
+                                className={`p-0.5 rounded-full transition-colors cursor-pointer ${t('hover:bg-zinc-700 text-zinc-300 hover:text-white', 'hover:bg-zinc-300 text-zinc-600 hover:text-zinc-900')}`}
+                              >
+                                <X size={14} strokeWidth={2.5} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <div className="relative mb-3 shrink-0">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Search className={`h-4 w-4 ${t('text-zinc-400', 'text-zinc-500')}`} />
+                      </div>
+                      <input type="text" placeholder="Search connections..." value={multiLogSearch} onChange={e => setMultiLogSearch(e.target.value)} className={`block w-full pl-10 pr-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm shadow-sm transition-shadow ${t('border-zinc-200 bg-white focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900 placeholder-zinc-400', 'border-zinc-700 bg-zinc-900 focus:ring-zinc-100 focus:border-zinc-100 text-white placeholder-zinc-500')}`} />
                     </div>
-                    <div className={`text-xs mt-1.5 shrink-0 font-semibold ${t('text-zinc-500', 'text-zinc-400')}`}>
-                      {multiLogSelectedIds.length} person(s) selected
+
+                    <div className={`flex-1 overflow-y-auto rounded-xl border p-2 no-scrollbar ${t('border-zinc-200 bg-zinc-50/50', 'border-zinc-800 bg-zinc-950/30')}`}>
+                      {contacts
+                        .filter(c => `${c.firstName} ${c.lastName}`.toLowerCase().includes(multiLogSearch.toLowerCase()))
+                        .sort((a,b) => a.firstName.localeCompare(b.firstName))
+                        .map(c => {
+                          const isSelected = multiLogSelectedIds.includes(c.id);
+                          return (
+                            <div 
+                              key={c.id} 
+                              onClick={() => {
+                                if (isSelected) {
+                                  setMultiLogSelectedIds(multiLogSelectedIds.filter(id => id !== c.id));
+                                } else {
+                                  setMultiLogSelectedIds([...multiLogSelectedIds, c.id]);
+                                }
+                              }}
+                              className={`flex items-center gap-3 p-2.5 mb-1 last:mb-0 rounded-lg cursor-pointer transition-all duration-200 select-none ${isSelected ? t('bg-white shadow-sm ring-1 ring-zinc-200', 'bg-zinc-800 ring-1 ring-zinc-700') : t('hover:bg-zinc-100', 'hover:bg-zinc-800/60')}`}
+                            >
+                              <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 shadow-sm ${getAvatarColorClass(`${c.firstName} ${c.lastName}`, isDarkMode)}`}>
+                                {c.firstName.charAt(0)}{c.lastName ? c.lastName.charAt(0) : ''}
+                              </div>
+                              <span className={`text-sm font-semibold flex-1 truncate transition-colors ${isSelected ? t('text-zinc-900', 'text-white') : t('text-zinc-700', 'text-zinc-300')}`}>{c.firstName} {c.lastName}</span>
+                              <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? t('bg-zinc-900 border-zinc-900 text-white', 'bg-white border-white text-zinc-900') : t('border-zinc-300 bg-white', 'border-zinc-600 bg-zinc-900')}`}>
+                                {isSelected && <Check size={12} strokeWidth={3} />}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {contacts.filter(c => `${c.firstName} ${c.lastName}`.toLowerCase().includes(multiLogSearch.toLowerCase())).length === 0 && (
+                          <div className={`text-center py-6 text-sm ${t('text-zinc-500', 'text-zinc-400')}`}>No contacts found.</div>
+                        )}
                     </div>
                   </div>
                   
-                  <div className="shrink-0">
-                    <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Date</label>
-                    <input type="date" required value={interactionDate} max={new Date().toISOString().split('T')[0]} onChange={(e) => setInteractionDate(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
+                  <div className={`shrink-0 pt-4 border-t ${t('border-zinc-200', 'border-zinc-800')}`}>
+                    <label className={`block text-sm font-medium mb-1.5 ${t('text-zinc-700', 'text-zinc-300')}`}>Date</label>
+                    <input type="date" required value={interactionDate} max={new Date().toISOString().split('T')[0]} onChange={(e) => setInteractionDate(e.target.value)} className={`block w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm shadow-sm transition-shadow ${t('border-zinc-200 bg-white focus:ring-zinc-900 text-zinc-900', 'border-zinc-700 bg-zinc-900 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
                   </div>
                   <div className="shrink-0">
-                    <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Note <span className={`font-normal ${t('text-zinc-400', 'text-zinc-500')}`}>(Optional)</span></label>
-                    <textarea rows="2" placeholder="What did you talk about?" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm resize-none ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
+                    <div className="flex items-center justify-between mb-2">
+                      <label className={`block text-sm font-medium ${t('text-zinc-700', 'text-zinc-300')}`}>Note <span className={`font-normal ${t('text-zinc-400', 'text-zinc-500')}`}>(Optional)</span></label>
+                      <button type="button" onClick={() => setIsManageActivitiesOpen(true)} className={`p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100', 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800')}`} title="Manage Quick Activities"><Settings size={14}/></button>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-3 mb-1">
+                      {quickActivities.map(act => (
+                        <button 
+                          type="button" 
+                          key={act} 
+                          onClick={() => appendQuickActivity(act)} 
+                          className={`whitespace-nowrap px-3.5 py-2 text-xs font-semibold rounded-xl border shadow-sm active:scale-95 transition-all duration-200 select-none ${t('bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-zinc-700 active:bg-zinc-100', 'bg-zinc-800 border-zinc-700 hover:border-zinc-600 hover:bg-zinc-700 text-zinc-300 active:bg-zinc-600')}`}
+                        >
+                          {act}
+                        </button>
+                      ))}
+                    </div>
+                    <textarea rows="2" placeholder="What did you talk about?" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm resize-none shadow-sm transition-shadow ${t('border-zinc-200 bg-white focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900', 'border-zinc-700 bg-zinc-900 focus:ring-zinc-100 focus:border-zinc-100 text-white')}`} />
                   </div>
-                  <div className="mt-4 pt-2 flex justify-end gap-3 shrink-0">
-                    <button type="button" onClick={() => setIsMultiLogModalOpen(false)} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
-                    <button type="submit" disabled={multiLogSelectedIds.length === 0} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200 disabled:opacity-50')}`}>Save</button>
+                  <div className="mt-2 pt-2 flex justify-end gap-3 shrink-0">
+                    <button type="button" onClick={() => setIsMultiLogModalOpen(false)} className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
+                    <button type="submit" disabled={multiLogSelectedIds.length === 0} className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all shadow-sm ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200')} disabled:opacity-50 disabled:scale-100 active:scale-95`}>Save</button>
                   </div>
                 </form>
               </div>
@@ -941,19 +1225,41 @@
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={(e) => handleBackdropClick(e, () => setLoggingInteractionFor(null))}>
               <div className={`rounded-3xl p-6 w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${t('bg-white', 'bg-zinc-900 border border-zinc-800')}`}>
                 <h2 className={`text-xl font-semibold mb-1 ${t('text-zinc-900', 'text-white')}`}>Log Interaction</h2>
-                <p className={`text-sm mb-5 ${t('text-zinc-500', 'text-zinc-400')}`}>With {loggingInteractionFor.firstName} {loggingInteractionFor.lastName}</p>
+                
+                <div className="flex items-center gap-3 mb-6 mt-4">
+                  <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ${getAvatarColorClass(`${loggingInteractionFor.firstName} ${loggingInteractionFor.lastName}`, isDarkMode)}`}>
+                    {loggingInteractionFor.firstName.charAt(0)}{loggingInteractionFor.lastName ? loggingInteractionFor.lastName.charAt(0) : ''}
+                  </div>
+                  <p className={`text-base font-medium ${t('text-zinc-700', 'text-zinc-300')}`}>{loggingInteractionFor.firstName} {loggingInteractionFor.lastName}</p>
+                </div>
+
                 <form onSubmit={handleLogInteraction} className="space-y-4">
                   <div>
-                    <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Date</label>
-                    <input type="date" required value={interactionDate} max={new Date().toISOString().split('T')[0]} onChange={(e) => setInteractionDate(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
+                    <label className={`block text-sm font-medium mb-1.5 ${t('text-zinc-700', 'text-zinc-300')}`}>Date</label>
+                    <input type="date" required value={interactionDate} max={new Date().toISOString().split('T')[0]} onChange={(e) => setInteractionDate(e.target.value)} className={`block w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm shadow-sm transition-shadow ${t('border-zinc-200 bg-white focus:ring-zinc-900 text-zinc-900', 'border-zinc-700 bg-zinc-900 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
                   </div>
                   <div>
-                    <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Note <span className={`font-normal ${t('text-zinc-400', 'text-zinc-500')}`}>(Optional)</span></label>
-                    <textarea rows="3" placeholder="What did you talk about?" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm resize-none ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
+                    <div className="flex items-center justify-between mb-2">
+                      <label className={`block text-sm font-medium ${t('text-zinc-700', 'text-zinc-300')}`}>Note <span className={`font-normal ${t('text-zinc-400', 'text-zinc-500')}`}>(Optional)</span></label>
+                      <button type="button" onClick={() => setIsManageActivitiesOpen(true)} className={`p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100', 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800')}`} title="Manage Quick Activities"><Settings size={14}/></button>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-3 mb-1">
+                      {quickActivities.map(act => (
+                        <button 
+                          type="button" 
+                          key={act} 
+                          onClick={() => appendQuickActivity(act)} 
+                          className={`whitespace-nowrap px-3.5 py-2 text-xs font-semibold rounded-xl border shadow-sm active:scale-95 transition-all duration-200 select-none ${t('bg-white border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 text-zinc-700 active:bg-zinc-100', 'bg-zinc-800 border-zinc-700 hover:border-zinc-600 hover:bg-zinc-700 text-zinc-300 active:bg-zinc-600')}`}
+                        >
+                          {act}
+                        </button>
+                      ))}
+                    </div>
+                    <textarea rows="3" placeholder="What did you talk about?" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm resize-none shadow-sm transition-shadow ${t('border-zinc-200 bg-white focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900', 'border-zinc-700 bg-zinc-900 focus:ring-zinc-100 focus:border-zinc-100 text-white')}`} />
                   </div>
-                  <div className="mt-8 flex justify-end gap-3">
-                    <button type="button" onClick={() => setLoggingInteractionFor(null)} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
-                    <button type="submit" className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200')}`}>Save Interaction</button>
+                  <div className="mt-8 pt-2 flex justify-end gap-3">
+                    <button type="button" onClick={() => setLoggingInteractionFor(null)} className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
+                    <button type="submit" className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all shadow-sm ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200')} active:scale-95`}>Save Interaction</button>
                   </div>
                 </form>
               </div>
