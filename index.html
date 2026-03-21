@@ -126,6 +126,10 @@
     const RefreshCcw = (p) => <Icon {...p}><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/></Icon>;
     const BarChart3 = (p) => <Icon {...p}><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></Icon>;
     const UsersIcon = (p) => <Icon {...p}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Icon>;
+    const Star = (p) => <Icon {...p}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></Icon>;
+    const Clock = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Icon>;
+    const TargetIcon = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></Icon>;
+    const PartyPopper = (p) => <Icon {...p}><path d="M5.8 11.3 2 22l10.7-3.79"/><path d="M4 3h.01"/><path d="M22 8h.01"/><path d="M15 2h.01"/><path d="M22 20h.01"/><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12v0c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"/><path d="m22 13-.82-.33c-.86-.39-1.87.15-2.15 1.07v0a1.96 1.96 0 0 1-2.56 1.14l-.83-.34"/><path d="m3 15 10.5-10.5a2.83 2.83 0 0 1 4 4L7 19l-4-4z"/></Icon>;
 
     const DEFAULT_TAGS = ['Family', 'OG Friend', 'Mission Friend', 'School Friend'];
     const DEFAULT_QUICK_ACTIVITIES = ['📱 Texted', '📞 Called', '☕️ Coffee', '🍽️ Meal', '👋 Hung out'];
@@ -139,6 +143,9 @@
     };
 
     const getAttentionRatio = (contact) => {
+      // If snoozed, they are perfectly healthy (ratio 0)
+      if (contact.snoozeUntil && new Date(contact.snoozeUntil) > new Date()) return 0;
+      
       const latest = getLatestInteraction(contact);
       if (!latest) return Infinity; // Never contacted pushes to absolute top
       const diffDays = Math.round(Math.abs(new Date() - new Date(latest.date)) / (1000 * 60 * 60 * 24));
@@ -189,13 +196,13 @@
     // ==========================================
     // 4. SWIPEABLE CONTACT CARD COMPONENT
     // ==========================================
-    const ContactCard = ({ contact, isDarkMode, t, openLogModal, openEditContactModal, setViewingHistoryFor, setContactToDelete }) => {
+    const ContactCard = ({ contact, isDarkMode, t, openLogModal, openEditContactModal, setViewingHistoryFor, setContactToDelete, handleSnoozeContact }) => {
       const [swipeX, setSwipeX] = useState(0);
       const touchStartX = useRef(null);
       const touchStartY = useRef(null);
       const isSwiping = useRef(false);
       const isHorizontal = useRef(false);
-      const SWIPE_THRESHOLD = -180; // Total width of hidden buttons
+      const SWIPE_THRESHOLD = -240; // Total width of 4 hidden buttons
 
       const handleTouchStart = (e) => {
         touchStartX.current = e.touches[0].clientX;
@@ -245,13 +252,20 @@
       const ratio = getAttentionRatio(contact);
       const latestInteraction = getLatestInteraction(contact);
       const fullName = `${contact.firstName} ${contact.lastName}`;
+      const isSnoozed = contact.snoozeUntil && new Date(contact.snoozeUntil) > new Date();
 
       // Dynamic Colors based on Urgency Ratio
       let urgencyColorClass = t('bg-emerald-100 text-emerald-700', 'bg-emerald-500/10 text-emerald-400'); // Default Green
       let nameColorClass = t('text-zinc-900', 'text-zinc-100');
       let avatarColorClass = t('bg-emerald-100 text-emerald-700', 'bg-emerald-500/20 text-emerald-300');
+      let statusText = getRelativeTime(latestInteraction?.date);
 
-      if (ratio > 1) { // Overdue (Red)
+      if (isSnoozed) { // Snoozed state overrides colors
+        urgencyColorClass = t('bg-indigo-100 text-indigo-700', 'bg-indigo-500/10 text-indigo-400');
+        nameColorClass = t('text-indigo-700', 'text-indigo-300');
+        avatarColorClass = t('bg-indigo-100 text-indigo-700 ring-2 ring-indigo-500/20', 'bg-indigo-500/20 text-indigo-300 ring-2 ring-indigo-500/50');
+        statusText = 'Snoozed';
+      } else if (ratio > 1) { // Overdue (Red)
         urgencyColorClass = t('bg-rose-100 text-rose-700', 'bg-rose-500/10 text-rose-400');
         nameColorClass = t('text-rose-600', 'text-rose-400');
         avatarColorClass = t('bg-rose-100 text-rose-700 ring-2 ring-rose-500/20', 'bg-rose-500/20 text-rose-300 ring-2 ring-rose-500/50');
@@ -271,7 +285,10 @@
         <div className={`group relative overflow-hidden rounded-2xl border shadow-sm transition-all duration-200 ${t('bg-zinc-100 border-zinc-200', 'bg-zinc-800/50 border-zinc-700')}`}>
           
           {/* Action Layer (Underneath - revealed on swipe/hover) */}
-          <div className="absolute inset-y-0 right-0 w-[180px] flex items-center justify-end px-2 gap-2">
+          <div className="absolute inset-y-0 right-0 w-[240px] flex items-center justify-end px-2 gap-2">
+            <button onClick={() => { resetSwipe(); handleSnoozeContact(contact); }} className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all shadow-sm ${t('text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:scale-105', 'text-indigo-400 bg-indigo-500/20 hover:bg-indigo-500/30 hover:scale-105')}`} title="Snooze 7 Days">
+              <Clock size={18} />
+            </button>
             <button onClick={() => { resetSwipe(); openEditContactModal(contact); }} className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all shadow-sm ${t('text-zinc-600 bg-white hover:text-blue-600 hover:scale-105', 'text-zinc-300 bg-zinc-800 hover:text-blue-400 hover:scale-105')}`} title="Edit">
               <Pencil size={18} />
             </button>
@@ -285,28 +302,29 @@
 
           {/* Foreground Sliding Card */}
           <div
-            className={`relative flex items-stretch justify-between w-full h-full transition-transform duration-300 ease-out sm:group-hover:-translate-x-[180px] ${t('bg-white', 'bg-zinc-900')}`}
+            className={`relative flex items-stretch justify-between w-full h-full transition-transform duration-300 ease-out sm:group-hover:-translate-x-[240px] ${t('bg-white', 'bg-zinc-900')}`}
             style={{ transform: `translateX(${swipeX}px)`, touchAction: 'pan-y' }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
             {/* Visual indicator that it's swipeable (only on mobile) */}
-            <div className={`absolute left-0 inset-y-0 w-1 sm:hidden ${ratio > 1 ? (isDarkMode ? 'bg-rose-500/50' : 'bg-rose-400') : ratio > 0.75 ? (isDarkMode ? 'bg-amber-500/50' : 'bg-amber-400') : 'bg-transparent'}`}></div>
+            <div className={`absolute left-0 inset-y-0 w-1 sm:hidden ${ratio > 1 && !isSnoozed ? (isDarkMode ? 'bg-rose-500/50' : 'bg-rose-400') : ratio > 0.75 && !isSnoozed ? (isDarkMode ? 'bg-amber-500/50' : 'bg-amber-400') : isSnoozed ? (isDarkMode ? 'bg-indigo-500/50' : 'bg-indigo-400') : 'bg-transparent'}`}></div>
 
             {/* Left Side: Avatar & Details */}
             <div className="p-4 sm:p-5 flex items-start gap-3 sm:gap-4 flex-1 min-w-0 pl-5">
-              <div className={`h-12 w-12 rounded-full flex items-center justify-center font-medium text-sm shrink-0 shadow-sm ${avatarColorClass}`}>
+              <div className={`h-12 w-12 rounded-full flex items-center justify-center font-bold text-[14px] shrink-0 shadow-sm ${avatarColorClass}`}>
                 {contact.firstName.charAt(0)}{contact.lastName ? contact.lastName.charAt(0) : ''}
               </div>
               
               <div className="min-w-0 pt-0.5 flex-1">
-                <h3 className={`text-base font-semibold truncate transition-colors ${nameColorClass}`}>
+                <h3 className={`text-base font-semibold truncate transition-colors flex items-center gap-1.5 ${nameColorClass}`}>
                   {fullName}
+                  {contact.isPinned && <Star size={12} className={`shrink-0 ${isSnoozed ? 'text-indigo-400 fill-indigo-400' : 'text-amber-400 fill-amber-400'}`} />}
                 </h3>
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1.5">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-semibold whitespace-nowrap ${urgencyColorClass}`}>
-                    {getRelativeTime(latestInteraction?.date)}
+                    {statusText}
                   </span>
                   {contact.tag && (
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-medium border whitespace-nowrap ${t('bg-zinc-50 border-zinc-200 text-zinc-500', 'bg-zinc-800/50 border-zinc-700 text-zinc-400')}`}>
@@ -353,6 +371,7 @@
       const isRemoteUpdate = useRef(false);
 
       const [activeTab, setActiveTab] = useState('contacts'); // 'contacts' or 'stats'
+      const [zenMode, setZenMode] = useState(false); // Focus Mode State
 
       const [isDarkMode, setIsDarkMode] = useState(false);
       const [tags, setTags] = useState(DEFAULT_TAGS);
@@ -391,6 +410,8 @@
       const [newTag, setNewTag] = useState('');
       const [newTargetFreq, setNewTargetFreq] = useState(30);
       const [newBirthday, setNewBirthday] = useState('');
+      const [newIsPinned, setNewIsPinned] = useState(false);
+      
       const [newTagInput, setNewTagInput] = useState('');
       const [newActivityInput, setNewActivityInput] = useState('');
       
@@ -500,6 +521,12 @@
       // Advanced Search & Sorting
       const sortedAndFilteredContacts = useMemo(() => {
         let filtered = contacts.filter(c => {
+          // If Zen Mode is active, immediately drop healthy people (unless they are pinned)
+          // Actually, we process Zen Mode here to completely hide them from the regular list.
+          if (zenMode && getAttentionRatio(c) <= 0.75) {
+             return false;
+          }
+
           const searchLower = searchQuery.toLowerCase();
           
           // 1. Check basic profile text
@@ -540,7 +567,12 @@
           // Urgency sort (Needs Attention). Highest ratio (most overdue) goes to the top.
           return getAttentionRatio(b) - getAttentionRatio(a);
         });
-      }, [contacts, searchQuery, filterTag, sortOrder]);
+      }, [contacts, searchQuery, filterTag, sortOrder, zenMode]);
+
+      // Extract Pinned Contacts
+      const pinnedContacts = useMemo(() => {
+         return contacts.filter(c => c.isPinned).sort((a,b) => a.firstName.localeCompare(b.firstName));
+      }, [contacts]);
 
       const handleAddContact = (e) => {
         e.preventDefault();
@@ -553,11 +585,12 @@
           tag: newTag || (tags.length > 0 ? tags[0] : ''),
           targetFrequency: Number(newTargetFreq),
           birthday: newBirthday,
+          isPinned: newIsPinned,
           interactions: [{ id: crypto.randomUUID(), date: new Date().toISOString(), note: 'Added to connections' }]
         }]);
         
         showToast(`${newFirstName.trim()} added!`);
-        setNewFirstName(''); setNewLastName(''); setNewTargetFreq(30); setNewBirthday(''); setIsAddModalOpen(false);
+        setNewFirstName(''); setNewLastName(''); setNewTargetFreq(30); setNewBirthday(''); setNewIsPinned(false); setIsAddModalOpen(false);
       };
 
       const handleSaveEditContact = (e) => {
@@ -571,6 +604,13 @@
 
       const openEditContactModal = (contact) => {
         setEditingContactDetails({ ...contact });
+      };
+
+      const handleSnoozeContact = (contact) => {
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        setContacts(contacts.map(c => c.id === contact.id ? { ...c, snoozeUntil: nextWeek.toISOString() } : c));
+        showToast(`${contact.firstName} snoozed for 7 days`);
       };
 
       const appendQuickActivity = (activityText) => {
@@ -814,6 +854,40 @@
             {/* VIEWS: Contacts List vs Stats Dashboard */}
             {activeTab === 'contacts' ? (
               <div>
+                
+                {/* Idea 3: Pinned VIP Shelf */}
+                {pinnedContacts.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className={`text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-1.5 ${t('text-zinc-400', 'text-zinc-500')}`}>
+                      <Star size={10} className="fill-current text-amber-500" /> Core Circle
+                    </h3>
+                    <div className="flex gap-4 sm:gap-5 overflow-x-auto no-scrollbar pb-3">
+                      {pinnedContacts.map(c => {
+                        const isSnoozed = c.snoozeUntil && new Date(c.snoozeUntil) > new Date();
+                        const ratio = getAttentionRatio(c);
+                        
+                        let outerRing = 'ring-transparent';
+                        if (ratio > 1 && !isSnoozed) outerRing = 'ring-rose-500';
+                        else if (ratio > 0.75 && !isSnoozed) outerRing = 'ring-amber-500';
+
+                        return (
+                          <div key={c.id} onClick={() => openLogModal(c)} className="flex flex-col items-center gap-2 cursor-pointer group shrink-0">
+                            <div className={`relative h-16 w-16 sm:h-18 sm:w-18 rounded-full flex items-center justify-center font-bold text-xl shadow-sm transition-transform group-hover:scale-105 ring-2 ring-offset-2 ${getAvatarColorClass(`${c.firstName} ${c.lastName}`, isDarkMode)} ${outerRing} ${t('ring-offset-[#FAFAFA]', 'ring-offset-zinc-950')}`}>
+                              {c.firstName.charAt(0)}{c.lastName ? c.lastName.charAt(0) : ''}
+                              {isSnoozed && (
+                                <div className={`absolute -bottom-1 -right-1 p-1 rounded-full border-2 ${t('bg-indigo-100 text-indigo-700 border-[#FAFAFA]', 'bg-indigo-500/20 text-indigo-300 border-zinc-950')}`}>
+                                  <Clock size={10} strokeWidth={3} />
+                                </div>
+                              )}
+                            </div>
+                            <span className={`text-[11px] sm:text-xs font-semibold text-center truncate w-16 sm:w-20 ${t('text-zinc-700', 'text-zinc-300')}`}>{c.firstName}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex flex-col sm:flex-row gap-3 mb-6">
                   <div className="relative flex-1">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -843,9 +917,16 @@
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 mb-8">
-                  <button onClick={() => setFilterTag('All')} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${filterTag === 'All' ? t('bg-zinc-900 text-white', 'bg-zinc-100 text-zinc-900') : t('bg-zinc-100 text-zinc-600 hover:bg-zinc-200', 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700')}`}>All</button>
+                  {/* Idea 1: Zen Mode / Focus Toggle */}
+                  <button onClick={() => setZenMode(!zenMode)} className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border ${zenMode ? t('bg-zinc-900 text-white border-zinc-900', 'bg-white text-zinc-900 border-white') : t('bg-white text-zinc-600 hover:bg-zinc-50 border-zinc-200', 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 border-zinc-800')}`}>
+                    <TargetIcon size={14} /> Focus Mode
+                  </button>
+
+                  <div className={`w-px h-5 mx-1 ${t('bg-zinc-200', 'bg-zinc-800')}`}></div>
+
+                  <button onClick={() => setFilterTag('All')} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${filterTag === 'All' && !zenMode ? t('bg-zinc-900 text-white', 'bg-zinc-100 text-zinc-900') : t('bg-zinc-100 text-zinc-600 hover:bg-zinc-200', 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700')}`}>All</button>
                   {tags.map(tag => (
-                    <button key={tag} onClick={() => setFilterTag(tag)} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${filterTag === tag ? t('bg-zinc-900 text-white', 'bg-zinc-100 text-zinc-900') : t('bg-zinc-100 text-zinc-600 hover:bg-zinc-200', 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700')}`}>{tag}</button>
+                    <button key={tag} onClick={() => { setFilterTag(tag); setZenMode(false); }} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${filterTag === tag && !zenMode ? t('bg-zinc-900 text-white', 'bg-zinc-100 text-zinc-900') : t('bg-zinc-100 text-zinc-600 hover:bg-zinc-200', 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700')}`}>{tag}</button>
                   ))}
                   <button onClick={() => setIsManageTagsOpen(true)} className={`p-1.5 rounded-full transition-colors ${t('text-zinc-400 hover:bg-zinc-200', 'text-zinc-500 hover:bg-zinc-800')}`} title="Manage Groups">
                     <Settings size={14} />
@@ -863,13 +944,20 @@
                         Add Your First Person
                       </button>
                     </div>
+                  ) : zenMode && sortedAndFilteredContacts.length === 0 ? (
+                    // Zen Mode Empty State ("Inbox Zero")
+                    <div className={`text-center py-16 px-4 border border-dashed rounded-3xl animate-in zoom-in-95 duration-500 ${t('border-emerald-200 bg-emerald-50/50', 'border-emerald-500/20 bg-emerald-500/5')}`}>
+                      <PartyPopper className={`mx-auto h-12 w-12 mb-4 ${t('text-emerald-400', 'text-emerald-500')}`} />
+                      <h3 className={`text-lg font-bold mb-2 ${t('text-emerald-900', 'text-emerald-400')}`}>Inbox Zero!</h3>
+                      <p className={`text-sm max-w-sm mx-auto ${t('text-emerald-700', 'text-emerald-500/70')}`}>You're fully caught up with everyone in your network. Great job staying connected.</p>
+                    </div>
                   ) : sortedAndFilteredContacts.length === 0 ? (
                     // Search/Filter Empty State
                     <div className={`text-center py-16 px-4 border border-dashed rounded-3xl ${t('border-zinc-200 bg-white', 'border-zinc-800 bg-zinc-900')}`}>
                       <Search className={`mx-auto h-10 w-10 mb-3 ${t('text-zinc-300', 'text-zinc-700')}`} />
                       <h3 className={`text-sm font-medium mb-1 ${t('text-zinc-900', 'text-zinc-100')}`}>No matches found</h3>
                       <p className={`text-sm mb-4 ${t('text-zinc-500', 'text-zinc-400')}`}>Try adjusting your search or filters.</p>
-                      <button onClick={() => { setSearchQuery(''); setFilterTag('All'); }} className={`text-sm font-semibold ${t('text-blue-600 hover:text-blue-800', 'text-blue-400 hover:text-blue-300')}`}>
+                      <button onClick={() => { setSearchQuery(''); setFilterTag('All'); setZenMode(false); }} className={`text-sm font-semibold ${t('text-blue-600 hover:text-blue-800', 'text-blue-400 hover:text-blue-300')}`}>
                         Clear Filters
                       </button>
                     </div>
@@ -883,7 +971,8 @@
                         openLogModal={openLogModal} 
                         openEditContactModal={openEditContactModal} 
                         setViewingHistoryFor={setViewingHistoryFor} 
-                        setContactToDelete={setContactToDelete} 
+                        setContactToDelete={setContactToDelete}
+                        handleSnoozeContact={handleSnoozeContact} 
                       />
                     ))
                   )}
@@ -999,6 +1088,22 @@
                       <input type="text" value={newLastName} onChange={(e) => setNewLastName(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                     </div>
                   </div>
+                  
+                  {/* VIP Toggle Idea 3 */}
+                  <label className={`flex items-center gap-3 p-3 mt-2 border rounded-xl cursor-pointer transition-colors ${newIsPinned ? t('bg-amber-50 border-amber-200', 'bg-amber-500/10 border-amber-500/30') : t('bg-zinc-50 border-zinc-200 hover:bg-zinc-100', 'bg-zinc-800/50 border-zinc-700 hover:bg-zinc-800')}`}>
+                    <div className={`p-2 rounded-full transition-colors ${newIsPinned ? 'bg-amber-100 text-amber-600' : t('bg-zinc-200 text-zinc-500', 'bg-zinc-700 text-zinc-400')}`}>
+                      <Star size={16} className={newIsPinned ? 'fill-current' : ''} />
+                    </div>
+                    <div className="flex-1">
+                      <div className={`text-sm font-semibold ${t('text-zinc-900', 'text-white')}`}>VIP Connection</div>
+                      <div className={`text-xs ${t('text-zinc-500', 'text-zinc-400')}`}>Pin to the top of your screen</div>
+                    </div>
+                    <div className={`w-10 h-6 rounded-full relative transition-colors ${newIsPinned ? 'bg-amber-500' : t('bg-zinc-300', 'bg-zinc-600')}`}>
+                      <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${newIsPinned ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                    </div>
+                    <input type="checkbox" className="hidden" checked={newIsPinned} onChange={(e) => setNewIsPinned(e.target.checked)} />
+                  </label>
+
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Group</label>
@@ -1041,6 +1146,22 @@
                       <input type="text" value={editingContactDetails.lastName} onChange={(e) => setEditingContactDetails({...editingContactDetails, lastName: e.target.value})} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                     </div>
                   </div>
+
+                  {/* VIP Toggle Idea 3 */}
+                  <label className={`flex items-center gap-3 p-3 mt-2 border rounded-xl cursor-pointer transition-colors ${editingContactDetails.isPinned ? t('bg-amber-50 border-amber-200', 'bg-amber-500/10 border-amber-500/30') : t('bg-zinc-50 border-zinc-200 hover:bg-zinc-100', 'bg-zinc-800/50 border-zinc-700 hover:bg-zinc-800')}`}>
+                    <div className={`p-2 rounded-full transition-colors ${editingContactDetails.isPinned ? 'bg-amber-100 text-amber-600' : t('bg-zinc-200 text-zinc-500', 'bg-zinc-700 text-zinc-400')}`}>
+                      <Star size={16} className={editingContactDetails.isPinned ? 'fill-current' : ''} />
+                    </div>
+                    <div className="flex-1">
+                      <div className={`text-sm font-semibold ${t('text-zinc-900', 'text-white')}`}>VIP Connection</div>
+                      <div className={`text-xs ${t('text-zinc-500', 'text-zinc-400')}`}>Pin to the top of your screen</div>
+                    </div>
+                    <div className={`w-10 h-6 rounded-full relative transition-colors ${editingContactDetails.isPinned ? 'bg-amber-500' : t('bg-zinc-300', 'bg-zinc-600')}`}>
+                      <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${editingContactDetails.isPinned ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                    </div>
+                    <input type="checkbox" className="hidden" checked={editingContactDetails.isPinned || false} onChange={(e) => setEditingContactDetails({...editingContactDetails, isPinned: e.target.checked})} />
+                  </label>
+
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Group</label>
@@ -1288,7 +1409,12 @@
                   <h2 className={`text-xl font-semibold ${t('text-zinc-900', 'text-white')}`}>Interaction History</h2>
                   <button onClick={() => setViewingHistoryFor(null)} className={`p-1.5 rounded-lg transition-colors ${t('text-zinc-400 hover:bg-zinc-100', 'text-zinc-500 hover:bg-zinc-800')}`}><X size={20}/></button>
                 </div>
-                <p className={`text-sm mb-4 font-semibold ${t('text-zinc-700', 'text-zinc-300')}`}>{viewingHistoryFor.firstName} {viewingHistoryFor.lastName}</p>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 shadow-sm ${getAvatarColorClass(`${viewingHistoryFor.firstName} ${viewingHistoryFor.lastName}`, isDarkMode)}`}>
+                    {viewingHistoryFor.firstName.charAt(0)}{viewingHistoryFor.lastName ? viewingHistoryFor.lastName.charAt(0) : ''}
+                  </div>
+                  <p className={`text-sm font-semibold ${t('text-zinc-700', 'text-zinc-300')}`}>{viewingHistoryFor.firstName} {viewingHistoryFor.lastName}</p>
+                </div>
                 
                 <div className="overflow-y-auto flex-1 pr-2 space-y-4 no-scrollbar">
                   {[...viewingHistoryFor.interactions].sort((a,b) => new Date(b.date) - new Date(a.date)).map(interaction => (
@@ -1326,16 +1452,16 @@
                 <h2 className={`text-xl font-semibold mb-5 ${t('text-zinc-900', 'text-white')}`}>Edit Interaction</h2>
                 <form onSubmit={handleSaveEditInteraction} className="space-y-4">
                   <div>
-                    <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Date</label>
-                    <input type="date" required value={interactionDate} max={new Date().toISOString().split('T')[0]} onChange={(e) => setInteractionDate(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
+                    <label className={`block text-sm font-medium mb-1.5 ${t('text-zinc-700', 'text-zinc-300')}`}>Date</label>
+                    <input type="date" required value={interactionDate} max={new Date().toISOString().split('T')[0]} onChange={(e) => setInteractionDate(e.target.value)} className={`block w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm shadow-sm transition-shadow ${t('border-zinc-200 bg-white focus:ring-zinc-900 text-zinc-900', 'border-zinc-700 bg-zinc-900 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
                   </div>
                   <div>
-                    <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Note <span className={`font-normal ${t('text-zinc-400', 'text-zinc-500')}`}>(Optional)</span></label>
-                    <textarea rows="3" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm resize-none ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
+                    <label className={`block text-sm font-medium mb-1.5 ${t('text-zinc-700', 'text-zinc-300')}`}>Note <span className={`font-normal ${t('text-zinc-400', 'text-zinc-500')}`}>(Optional)</span></label>
+                    <textarea rows="3" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm resize-none shadow-sm transition-shadow ${t('border-zinc-200 bg-white focus:ring-zinc-900 focus:border-zinc-900 text-zinc-900', 'border-zinc-700 bg-zinc-900 focus:ring-zinc-100 focus:border-zinc-100 text-white')}`} />
                   </div>
-                  <div className="mt-8 flex justify-end gap-3">
-                    <button type="button" onClick={() => setEditingInteraction(null)} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
-                    <button type="submit" className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200')}`}>Save</button>
+                  <div className="mt-8 pt-2 flex justify-end gap-3">
+                    <button type="button" onClick={() => setEditingInteraction(null)} className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
+                    <button type="submit" className={`px-5 py-2.5 text-sm font-semibold rounded-xl transition-all shadow-sm ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200')} active:scale-95`}>Save</button>
                   </div>
                 </form>
               </div>
