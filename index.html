@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
   <title>Personal CRM</title>
   
   <!-- Theme Color for iOS Status Bar & Safari Bottom Bar -->
@@ -55,6 +55,10 @@
         right: 2.5rem;
       }
     }
+
+    /* Hide scrollbar for clean internal scrolling areas */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body>
@@ -76,16 +80,15 @@
       appId: "1:116796553317:web:71f4b1d1278bd185226e8c"
     };
 
-    // Initialize Firebase
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
-
-    // The shared hardcoded location for your single-user data
     const SHARED_DOC_ID = 'shared_workspace';
 
-    // --- Inline Icons ---
+    // ==========================================
+    // 2. ICONS
+    // ==========================================
     const Icon = ({ children, size = 24, className = "" }) => (
       <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         {children}
@@ -96,14 +99,14 @@
     const CheckCircle2 = (p) => <Icon {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></Icon>;
     const Search = (p) => <Icon {...p}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></Icon>;
     const Trash2 = (p) => <Icon {...p}><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></Icon>;
-    const CalendarDays = (p) => <Icon {...p}><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></Icon>;
+    const CalendarDays = (p) => <Icon {...p}><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></Icon>;
     const Sun = (p) => <Icon {...p}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></Icon>;
     const Moon = (p) => <Icon {...p}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></Icon>;
     const MessageSquarePlus = (p) => <Icon {...p}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="12" y1="7" x2="12" y2="13"/></Icon>;
-    const Tag = (p) => <Icon {...p}><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></Icon>;
+    const TagIcon = (p) => <Icon {...p}><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></Icon>;
     const Download = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Icon>;
     const Upload = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></Icon>;
-    const History = (p) => <Icon {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></Icon>;
+    const HistoryIcon = (p) => <Icon {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></Icon>;
     const Settings = (p) => <Icon {...p}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></Icon>;
     const X = (p) => <Icon {...p}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Icon>;
     const ArrowUpDown = (p) => <Icon {...p}><path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/></Icon>;
@@ -112,23 +115,217 @@
     const Cloud = (p) => <Icon {...p}><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></Icon>;
     const Plus = (p) => <Icon {...p}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Icon>;
     const Check = (p) => <Icon {...p}><polyline points="20 6 9 17 4 12"/></Icon>;
+    const ChevronLeft = (p) => <Icon {...p}><polyline points="15 18 9 12 15 6"/></Icon>;
 
     const DEFAULT_TAGS = ['Family', 'OG Friend', 'Mission Friend', 'School Friend'];
 
-    const getAvatarColor = (name, isDark, needsAttention) => {
-      if (needsAttention) {
-        return isDark ? 'bg-rose-500/20 text-rose-300' : 'bg-rose-100 text-rose-700';
-      }
-      const colors = isDark 
-        ? ['bg-green-500/20 text-green-300', 'bg-emerald-500/20 text-emerald-300', 'bg-teal-500/20 text-teal-300', 'bg-cyan-500/20 text-cyan-300', 'bg-blue-500/20 text-blue-300', 'bg-indigo-500/20 text-indigo-300', 'bg-violet-500/20 text-violet-300', 'bg-purple-500/20 text-purple-300', 'bg-fuchsia-500/20 text-fuchsia-300']
-        : ['bg-green-100 text-green-700', 'bg-emerald-100 text-emerald-700', 'bg-teal-100 text-teal-700', 'bg-cyan-100 text-cyan-700', 'bg-blue-100 text-blue-700', 'bg-indigo-100 text-indigo-700', 'bg-violet-100 text-violet-700', 'bg-purple-100 text-purple-700', 'bg-fuchsia-100 text-fuchsia-700'];
-      
-      let hash = 0;
-      for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-      return colors[Math.abs(hash) % colors.length];
+    // ==========================================
+    // 3. GLOBAL HELPERS
+    // ==========================================
+    const getLatestInteraction = (contact) => {
+      if (!contact.interactions || contact.interactions.length === 0) return null;
+      return [...contact.interactions].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
     };
 
-    // --- Main App Component ---
+    const getAttentionRatio = (contact) => {
+      const latest = getLatestInteraction(contact);
+      if (!latest) return Infinity; // Never contacted pushes to absolute top
+      const diffDays = Math.round(Math.abs(new Date() - new Date(latest.date)) / (1000 * 60 * 60 * 24));
+      return diffDays / (contact.targetFrequency || 30);
+    };
+
+    const getRelativeTime = (dateString) => {
+      if (!dateString) return 'Never';
+      const date = new Date(dateString);
+      const now = new Date();
+      date.setHours(0, 0, 0, 0); now.setHours(0, 0, 0, 0);
+      const diffDays = Math.round(Math.abs(now - date) / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 0) return 'Today';
+      if (diffDays === 1) return 'Yesterday';
+      if (diffDays < 7) return `${diffDays} days ago`;
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} wks ago`;
+      if (diffDays < 365) return `${Math.floor(diffDays / 30)} mos ago`;
+      return `${Math.floor(diffDays / 365)} yrs ago`;
+    };
+
+    const isBirthdayUpcoming = (birthdayStr) => {
+      if (!birthdayStr) return false;
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const [year, month, day] = birthdayStr.split('-');
+      const bdayThisYear = new Date(today.getFullYear(), month - 1, day);
+      if (bdayThisYear < today && (today - bdayThisYear) > 1000 * 60 * 60 * 24) {
+         bdayThisYear.setFullYear(today.getFullYear() + 1);
+      }
+      const diffDays = Math.round((bdayThisYear - today) / (1000 * 60 * 60 * 24));
+      return diffDays >= 0 && diffDays <= 7;
+    };
+
+    // ==========================================
+    // 4. SWIPEABLE CONTACT CARD COMPONENT
+    // ==========================================
+    const ContactCard = ({ contact, isDarkMode, t, openLogModal, openEditContactModal, setViewingHistoryFor, setContactToDelete }) => {
+      const [swipeX, setSwipeX] = useState(0);
+      const touchStartX = useRef(null);
+      const touchStartY = useRef(null);
+      const isSwiping = useRef(false);
+      const isHorizontal = useRef(false);
+      const SWIPE_THRESHOLD = -180; // Total width of hidden buttons
+
+      const handleTouchStart = (e) => {
+        touchStartX.current = e.touches[0].clientX;
+        touchStartY.current = e.touches[0].clientY;
+        isSwiping.current = true;
+        isHorizontal.current = false;
+      };
+
+      const handleTouchMove = (e) => {
+        if (!isSwiping.current) return;
+        const diffX = e.touches[0].clientX - touchStartX.current;
+        const diffY = e.touches[0].clientY - touchStartY.current;
+
+        // Determine orientation
+        if (!isHorizontal.current) {
+          if (Math.abs(diffX) > Math.abs(diffY)) {
+            isHorizontal.current = true;
+          } else if (Math.abs(diffY) > Math.abs(diffX)) {
+            isSwiping.current = false; // vertical scroll, abort swipe
+            return;
+          }
+        }
+
+        if (isHorizontal.current) {
+          // Constrain swipe to left only
+          if (diffX < 0) {
+            setSwipeX(Math.max(diffX, SWIPE_THRESHOLD - 20)); // slight rubber band
+          } else {
+            setSwipeX(0);
+          }
+        }
+      };
+
+      const handleTouchEnd = () => {
+        isSwiping.current = false;
+        // Snap open or snap closed based on distance
+        if (swipeX < SWIPE_THRESHOLD / 2) {
+          setSwipeX(SWIPE_THRESHOLD);
+        } else {
+          setSwipeX(0);
+        }
+      };
+
+      const resetSwipe = () => setSwipeX(0);
+
+      // Extract Data Logic
+      const ratio = getAttentionRatio(contact);
+      const latestInteraction = getLatestInteraction(contact);
+      const fullName = `${contact.firstName} ${contact.lastName}`;
+
+      // Dynamic Colors based on Urgency Ratio
+      let urgencyColorClass = t('bg-emerald-100 text-emerald-700', 'bg-emerald-500/10 text-emerald-400'); // Default Green
+      let nameColorClass = t('text-zinc-900', 'text-zinc-100');
+      let avatarColorClass = t('bg-emerald-100 text-emerald-700', 'bg-emerald-500/20 text-emerald-300');
+
+      if (ratio > 1) { // Overdue (Red)
+        urgencyColorClass = t('bg-rose-100 text-rose-700', 'bg-rose-500/10 text-rose-400');
+        nameColorClass = t('text-rose-600', 'text-rose-400');
+        avatarColorClass = t('bg-rose-100 text-rose-700 ring-2 ring-rose-500/20', 'bg-rose-500/20 text-rose-300 ring-2 ring-rose-500/50');
+      } else if (ratio > 0.75) { // Warning (Yellow)
+        urgencyColorClass = t('bg-amber-100 text-amber-700', 'bg-amber-500/10 text-amber-400');
+        nameColorClass = t('text-amber-600', 'text-amber-400');
+        avatarColorClass = t('bg-amber-100 text-amber-700 ring-2 ring-amber-500/20', 'bg-amber-500/20 text-amber-300 ring-2 ring-amber-500/50');
+      } else if (!latestInteraction) {
+        // Never interacted handles infinite ratio, handled above, but just in case
+        avatarColorClass = t('bg-rose-100 text-rose-700', 'bg-rose-500/20 text-rose-300');
+      } else {
+        // Fallback hash colors for healthy contacts
+        const colors = isDarkMode 
+          ? ['bg-green-500/20 text-green-300', 'bg-teal-500/20 text-teal-300', 'bg-cyan-500/20 text-cyan-300', 'bg-blue-500/20 text-blue-300', 'bg-indigo-500/20 text-indigo-300', 'bg-purple-500/20 text-purple-300']
+          : ['bg-green-100 text-green-700', 'bg-teal-100 text-teal-700', 'bg-cyan-100 text-cyan-700', 'bg-blue-100 text-blue-700', 'bg-indigo-100 text-indigo-700', 'bg-purple-100 text-purple-700'];
+        let hash = 0;
+        for (let i = 0; i < fullName.length; i++) hash = fullName.charCodeAt(i) + ((hash << 5) - hash);
+        avatarColorClass = colors[Math.abs(hash) % colors.length];
+      }
+
+      return (
+        <div className={`group relative overflow-hidden rounded-2xl border shadow-sm transition-all duration-200 ${t('bg-zinc-100 border-zinc-200', 'bg-zinc-800/50 border-zinc-700')}`}>
+          
+          {/* Action Layer (Underneath - revealed on swipe/hover) */}
+          <div className="absolute inset-y-0 right-0 w-[180px] flex items-center justify-end px-2 gap-2">
+            <button onClick={() => { resetSwipe(); openEditContactModal(contact); }} className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all shadow-sm ${t('text-zinc-600 bg-white hover:text-blue-600 hover:scale-105', 'text-zinc-300 bg-zinc-800 hover:text-blue-400 hover:scale-105')}`} title="Edit">
+              <Pencil size={18} />
+            </button>
+            <button onClick={() => { resetSwipe(); setViewingHistoryFor(contact); }} className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all shadow-sm ${t('text-zinc-600 bg-white hover:text-blue-600 hover:scale-105', 'text-zinc-300 bg-zinc-800 hover:text-blue-400 hover:scale-105')}`} title="History">
+              <HistoryIcon size={18} />
+            </button>
+            <button onClick={() => { resetSwipe(); setContactToDelete(contact); }} className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-all shadow-sm ${t('text-zinc-600 bg-white hover:text-rose-600 hover:scale-105', 'text-zinc-300 bg-zinc-800 hover:text-rose-400 hover:scale-105')}`} title="Delete">
+              <Trash2 size={18} />
+            </button>
+          </div>
+
+          {/* Foreground Sliding Card */}
+          <div
+            className={`relative flex items-stretch justify-between w-full h-full transition-transform duration-300 ease-out sm:group-hover:-translate-x-[180px] ${t('bg-white', 'bg-zinc-900')}`}
+            style={{ transform: `translateX(${swipeX}px)`, touchAction: 'pan-y' }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* Visual indicator that it's swipeable (only on mobile) */}
+            <div className={`absolute left-0 inset-y-0 w-1 sm:hidden ${ratio > 1 ? (isDarkMode ? 'bg-rose-500/50' : 'bg-rose-400') : ratio > 0.75 ? (isDarkMode ? 'bg-amber-500/50' : 'bg-amber-400') : 'bg-transparent'}`}></div>
+
+            {/* Left Side: Avatar & Details */}
+            <div className="p-4 sm:p-5 flex items-start gap-3 sm:gap-4 flex-1 min-w-0 pl-5">
+              <div className={`h-12 w-12 rounded-full flex items-center justify-center font-medium text-sm shrink-0 shadow-sm ${avatarColorClass}`}>
+                {contact.firstName.charAt(0)}{contact.lastName ? contact.lastName.charAt(0) : ''}
+              </div>
+              
+              <div className="min-w-0 pt-0.5 flex-1">
+                <h3 className={`text-base font-semibold truncate transition-colors ${nameColorClass}`}>
+                  {fullName}
+                </h3>
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1.5">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-semibold whitespace-nowrap ${urgencyColorClass}`}>
+                    {getRelativeTime(latestInteraction?.date)}
+                  </span>
+                  {contact.tag && (
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-medium border whitespace-nowrap ${t('bg-zinc-50 border-zinc-200 text-zinc-500', 'bg-zinc-800/50 border-zinc-700 text-zinc-400')}`}>
+                      <TagIcon size={10} className="mr-1 hidden sm:inline-block" />{contact.tag}
+                    </span>
+                  )}
+                  {isBirthdayUpcoming(contact.birthday) && (
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-medium border whitespace-nowrap ${t('bg-fuchsia-50 border-fuchsia-200 text-fuchsia-600', 'bg-fuchsia-500/10 border-fuchsia-500/20 text-fuchsia-400')}`} title="Birthday within 7 days!">
+                      <Gift size={10} className="mr-1 hidden sm:inline-block" /> B-Day
+                    </span>
+                  )}
+                </div>
+                {latestInteraction?.note && (
+                  <p className={`mt-2 text-sm italic truncate sm:whitespace-normal ${t('text-zinc-500', 'text-zinc-400')}`}>
+                    "{latestInteraction.note}"
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Right Side: Massive Log Button */}
+            <button 
+              onClick={(e) => { e.stopPropagation(); openLogModal(contact); }} 
+              className={`shrink-0 w-24 sm:w-28 flex flex-col items-center justify-center gap-2 border-l transition-colors active:opacity-70 ${t('border-zinc-100 bg-zinc-50 hover:bg-zinc-100', 'border-zinc-800 bg-zinc-800/20 hover:bg-zinc-800/60')}`}
+            >
+              <div className={`p-2 rounded-full transition-colors ${t('bg-zinc-200/50 text-zinc-600', 'bg-zinc-800 text-zinc-300')}`}>
+                <MessageSquarePlus size={20} />
+              </div>
+              <span className={`text-[11px] font-bold tracking-wider uppercase ${t('text-zinc-500', 'text-zinc-400')}`}>Log</span>
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    // ==========================================
+    // 5. MAIN APP COMPONENT
+    // ==========================================
     function App() {
       // App State
       const [dataLoading, setDataLoading] = useState(true);
@@ -263,53 +460,6 @@
          if (isAddModalOpen && tags.length > 0 && !newTag) setNewTag(tags[0]);
       }, [isAddModalOpen, tags, newTag]);
 
-      const getLatestInteraction = (contact) => {
-        if (!contact.interactions || contact.interactions.length === 0) return null;
-        return [...contact.interactions].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-      };
-
-      const getRelativeTime = (dateString) => {
-        if (!dateString) return 'Never';
-        const date = new Date(dateString);
-        const now = new Date();
-        date.setHours(0, 0, 0, 0); now.setHours(0, 0, 0, 0);
-        const diffDays = Math.round(Math.abs(now - date) / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 0) return 'Today';
-        if (diffDays === 1) return 'Yesterday';
-        if (diffDays < 7) return `${diffDays} days ago`;
-        if (diffDays < 30) return `${Math.floor(diffDays / 7)} ${Math.floor(diffDays / 7) === 1 ? 'week' : 'weeks'} ago`;
-        if (diffDays < 365) return `${Math.floor(diffDays / 30)} ${Math.floor(diffDays / 30) === 1 ? 'month' : 'months'} ago`;
-        return `${Math.floor(diffDays / 365)} ${Math.floor(diffDays / 365) === 1 ? 'year' : 'years'} ago`;
-      };
-
-      const getStatusColor = (contact) => {
-        const latest = getLatestInteraction(contact);
-        if (!latest) return t('bg-zinc-100 text-zinc-500', 'bg-zinc-800 text-zinc-400');
-        
-        const diffDays = Math.round(Math.abs(new Date() - new Date(latest.date)) / (1000 * 60 * 60 * 24));
-        const freq = contact.targetFrequency || 30;
-
-        if (diffDays <= freq * 0.5) return t('bg-emerald-100 text-emerald-700', 'bg-emerald-500/10 text-emerald-400');
-        if (diffDays <= freq) return t('bg-amber-100 text-amber-700', 'bg-amber-500/10 text-amber-400');
-        return t('bg-rose-100 text-rose-700', 'bg-rose-500/10 text-rose-400');
-      };
-
-      const isBirthdayUpcoming = (birthdayStr) => {
-        if (!birthdayStr) return false;
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        const [year, month, day] = birthdayStr.split('-');
-        const bdayThisYear = new Date(today.getFullYear(), month - 1, day);
-        
-        if (bdayThisYear < today && (today - bdayThisYear) > 1000 * 60 * 60 * 24) {
-           bdayThisYear.setFullYear(today.getFullYear() + 1);
-        }
-        
-        const diffDays = Math.round((bdayThisYear - today) / (1000 * 60 * 60 * 24));
-        return diffDays >= 0 && diffDays <= 7;
-      };
-
       // Advanced Search & Sorting
       const sortedAndFilteredContacts = useMemo(() => {
         let filtered = contacts.filter(c => {
@@ -321,17 +471,14 @@
           
           // 2. Deep search through interaction notes and specific dates
           const matchInteractions = c.interactions && c.interactions.some(i => {
-            // Check note text
             if (i.note && i.note.toLowerCase().includes(searchLower)) return true;
-            
-            // Check various date formats (e.g. "10/24", "Oct 24", "2024-10-24")
             const d = new Date(i.date);
-            if (isNaN(d.getTime())) return false; // Safety check
+            if (isNaN(d.getTime())) return false;
             
-            const dateStr1 = d.toLocaleDateString().toLowerCase(); // e.g. 10/24/2024
-            const dateStr2 = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).toLowerCase(); // e.g. oct 24, 2024
-            const dateStr3 = d.toLocaleDateString(undefined, { month: 'long', day: 'numeric' }).toLowerCase(); // e.g. october 24
-            const dateStr4 = i.date.split('T')[0]; // e.g. 2024-10-24
+            const dateStr1 = d.toLocaleDateString().toLowerCase(); 
+            const dateStr2 = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).toLowerCase(); 
+            const dateStr3 = d.toLocaleDateString(undefined, { month: 'long', day: 'numeric' }).toLowerCase();
+            const dateStr4 = i.date.split('T')[0]; 
             
             return dateStr1.includes(searchLower) || dateStr2.includes(searchLower) || dateStr3.includes(searchLower) || dateStr4.includes(searchLower);
           });
@@ -345,11 +492,15 @@
         return filtered.sort((a, b) => {
           if (sortOrder === 'alphabetical') return a.firstName.localeCompare(b.firstName);
           
-          const dateA = getLatestInteraction(a)?.date || 0;
-          const dateB = getLatestInteraction(b)?.date || 0;
+          const latestA = getLatestInteraction(a);
+          const latestB = getLatestInteraction(b);
+          const dateA = latestA?.date || 0;
+          const dateB = latestB?.date || 0;
           
           if (sortOrder === 'recent') return new Date(dateB) - new Date(dateA);
-          return new Date(dateA) - new Date(dateB);
+          
+          // Urgency sort (Needs Attention). Highest ratio (most overdue) goes to the top.
+          return getAttentionRatio(b) - getAttentionRatio(a);
         });
       }, [contacts, searchQuery, filterTag, sortOrder]);
 
@@ -522,7 +673,7 @@
             <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-10">
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className={`text-3xl font-light tracking-tight ${t('text-zinc-900', 'text-white')}`}>Connections</h1>
+                  <h1 className={`text-3xl font-bold tracking-tight ${t('text-zinc-900', 'text-white')}`}>Connections</h1>
                   <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors ${
                     syncStatus === 'Syncing...' 
                       ? t('bg-blue-50 text-blue-600', 'bg-blue-500/10 text-blue-400')
@@ -549,7 +700,7 @@
                   {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
                 </button>
                 
-                <button onClick={() => setIsAddModalOpen(true)} className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-colors shadow-sm border ${t('bg-zinc-900 text-white border-transparent hover:bg-zinc-800', 'bg-zinc-800 text-zinc-100 border-zinc-700 hover:bg-zinc-700')}`}>
+                <button onClick={() => setIsAddModalOpen(true)} className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors shadow-sm border ${t('bg-zinc-900 text-white border-transparent hover:bg-zinc-800', 'bg-zinc-800 text-zinc-100 border-zinc-700 hover:bg-zinc-700')}`}>
                   <UserPlus size={16} /> Add Person
                 </button>
               </div>
@@ -573,7 +724,7 @@
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
-                  className={`py-2.5 px-3 border rounded-xl text-sm focus:outline-none focus:ring-2 cursor-pointer transition-colors shadow-sm ${t('bg-white border-zinc-200 focus:ring-zinc-900 text-zinc-700', 'bg-zinc-900 border-zinc-800 focus:ring-zinc-100 text-zinc-300')}`}
+                  className={`py-2.5 px-3 border rounded-xl text-sm font-medium focus:outline-none focus:ring-2 cursor-pointer transition-colors shadow-sm ${t('bg-white border-zinc-200 focus:ring-zinc-900 text-zinc-700', 'bg-zinc-900 border-zinc-800 focus:ring-zinc-100 text-zinc-300')}`}
                 >
                   <option value="oldest">Needs Attention</option>
                   <option value="recent">Recently Contacted</option>
@@ -583,89 +734,34 @@
             </div>
 
             <div className="flex flex-wrap items-center gap-2 mb-8">
-              <button onClick={() => setFilterTag('All')} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${filterTag === 'All' ? t('bg-zinc-900 text-white', 'bg-zinc-100 text-zinc-900') : t('bg-zinc-100 text-zinc-600 hover:bg-zinc-200', 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700')}`}>All</button>
+              <button onClick={() => setFilterTag('All')} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${filterTag === 'All' ? t('bg-zinc-900 text-white', 'bg-zinc-100 text-zinc-900') : t('bg-zinc-100 text-zinc-600 hover:bg-zinc-200', 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700')}`}>All</button>
               {tags.map(tag => (
-                <button key={tag} onClick={() => setFilterTag(tag)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${filterTag === tag ? t('bg-zinc-900 text-white', 'bg-zinc-100 text-zinc-900') : t('bg-zinc-100 text-zinc-600 hover:bg-zinc-200', 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700')}`}>{tag}</button>
+                <button key={tag} onClick={() => setFilterTag(tag)} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${filterTag === tag ? t('bg-zinc-900 text-white', 'bg-zinc-100 text-zinc-900') : t('bg-zinc-100 text-zinc-600 hover:bg-zinc-200', 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700')}`}>{tag}</button>
               ))}
               <button onClick={() => setIsManageTagsOpen(true)} className={`p-1.5 rounded-full transition-colors ${t('text-zinc-400 hover:bg-zinc-200', 'text-zinc-500 hover:bg-zinc-800')}`} title="Manage Groups">
                 <Settings size={14} />
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 pb-20 sm:pb-0 overflow-x-hidden">
               {sortedAndFilteredContacts.length === 0 ? (
                 <div className={`text-center py-16 px-4 border border-dashed rounded-3xl ${t('border-zinc-200 bg-white', 'border-zinc-800 bg-zinc-900')}`}>
                   <CalendarDays className={`mx-auto h-10 w-10 mb-3 ${t('text-zinc-300', 'text-zinc-700')}`} />
                   <h3 className={`text-sm font-medium ${t('text-zinc-900', 'text-zinc-100')}`}>No connections found</h3>
                 </div>
               ) : (
-                sortedAndFilteredContacts.map(contact => {
-                  const latestInteraction = getLatestInteraction(contact);
-                  const fullName = `${contact.firstName} ${contact.lastName}`;
-
-                  let needsAttention = true;
-                  if (latestInteraction) {
-                    const date = new Date(latestInteraction.date);
-                    const now = new Date();
-                    date.setHours(0, 0, 0, 0); now.setHours(0, 0, 0, 0);
-                    const diffDays = Math.round(Math.abs(now - date) / (1000 * 60 * 60 * 24));
-                    needsAttention = diffDays > (contact.targetFrequency || 30);
-                  }
-
-                  return (
-                    <div key={contact.id} className={`group flex items-start justify-between p-4 sm:p-5 rounded-2xl border shadow-sm hover:shadow-md transition-all duration-200 gap-3 sm:gap-4 ${t('bg-white border-zinc-100', 'bg-zinc-900 border-zinc-800/50 hover:border-zinc-700')}`}>
-                      <div className="flex items-start gap-3 sm:gap-4 min-w-0">
-                        <div className={`h-10 w-10 rounded-full flex items-center justify-center font-medium text-sm shrink-0 ${getAvatarColor(fullName, isDarkMode, needsAttention)}`}>
-                          {contact.firstName.charAt(0)}{contact.lastName ? contact.lastName.charAt(0) : ''}
-                        </div>
-                        
-                        <div className="min-w-0 pt-0.5">
-                          <h3 className={`text-base font-medium flex items-center gap-2 truncate ${t('text-zinc-900', 'text-zinc-100')}`}>
-                            {fullName}
-                          </h3>
-                          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap ${getStatusColor(contact)}`}>
-                              {getRelativeTime(latestInteraction?.date)}
-                            </span>
-                            {contact.tag && (
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium border whitespace-nowrap ${t('bg-zinc-50 border-zinc-200 text-zinc-500', 'bg-zinc-800/50 border-zinc-700 text-zinc-400')}`}>
-                                <Tag size={10} className="mr-1 hidden sm:inline-block" />{contact.tag}
-                              </span>
-                            )}
-                            {isBirthdayUpcoming(contact.birthday) && (
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium border whitespace-nowrap ${t('bg-fuchsia-50 border-fuchsia-200 text-fuchsia-600', 'bg-fuchsia-500/10 border-fuchsia-500/20 text-fuchsia-400')}`} title="Birthday within 7 days!">
-                                <Gift size={10} className="mr-1 hidden sm:inline-block" /> Upcoming B-Day
-                              </span>
-                            )}
-                          </div>
-                          {latestInteraction?.note && (
-                            <p className={`mt-2 text-sm italic truncate sm:whitespace-normal ${t('text-zinc-500', 'text-zinc-400')}`}>
-                              "{latestInteraction.note}"
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col items-end gap-2 shrink-0 pl-1">
-                        <button onClick={() => openLogModal(contact)} className={`inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-1.5 text-[11px] sm:text-sm font-medium rounded-lg transition-colors border ${t('bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border-zinc-200', 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border-zinc-700')}`} title="Log interaction">
-                          <MessageSquarePlus size={14} className={`sm:w-4 sm:h-4 ${t('text-zinc-400', 'text-zinc-500')}`} /> Log
-                        </button>
-                        
-                        <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity mt-1 sm:mt-0">
-                          <button onClick={() => openEditContactModal(contact)} className={`p-1.5 sm:p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-blue-500 hover:bg-blue-50', 'text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10')}`} title="Edit Contact">
-                            <Pencil size={14} />
-                          </button>
-                          <button onClick={() => setViewingHistoryFor(contact)} className={`p-1.5 sm:p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-blue-500 hover:bg-blue-50', 'text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10')}`} title="View history">
-                            <History size={14} />
-                          </button>
-                          <button onClick={() => setContactToDelete(contact)} className={`p-1.5 sm:p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-rose-500 hover:bg-rose-50', 'text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10')}`} title="Remove connection">
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
+                sortedAndFilteredContacts.map(contact => (
+                  <ContactCard 
+                    key={contact.id} 
+                    contact={contact} 
+                    t={t} 
+                    isDarkMode={isDarkMode} 
+                    openLogModal={openLogModal} 
+                    openEditContactModal={openEditContactModal} 
+                    setViewingHistoryFor={setViewingHistoryFor} 
+                    setContactToDelete={setContactToDelete} 
+                  />
+                ))
               )}
             </div>
           </div>
@@ -683,7 +779,7 @@
           {isAddModalOpen && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={(e) => handleBackdropClick(e, () => setIsAddModalOpen(false))}>
               <div className={`rounded-3xl p-6 w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${t('bg-white', 'bg-zinc-900 border border-zinc-800')}`}>
-                <h2 className={`text-xl font-medium mb-5 ${t('text-zinc-900', 'text-white')}`}>Add New Connection</h2>
+                <h2 className={`text-xl font-semibold mb-5 ${t('text-zinc-900', 'text-white')}`}>Add New Connection</h2>
                 <form onSubmit={handleAddContact} className="space-y-4">
                   <div className="flex gap-4">
                     <div className="flex-1">
@@ -713,8 +809,8 @@
                     <input type="date" value={newBirthday} onChange={(e) => setNewBirthday(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
                   </div>
                   <div className="mt-8 flex justify-end gap-3">
-                    <button type="button" onClick={() => setIsAddModalOpen(false)} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
-                    <button type="submit" disabled={!newFirstName.trim()} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200')}`}>Save</button>
+                    <button type="button" onClick={() => setIsAddModalOpen(false)} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
+                    <button type="submit" disabled={!newFirstName.trim()} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200')}`}>Save</button>
                   </div>
                 </form>
               </div>
@@ -725,7 +821,7 @@
           {editingContactDetails && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={(e) => handleBackdropClick(e, () => setEditingContactDetails(null))}>
               <div className={`rounded-3xl p-6 w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${t('bg-white', 'bg-zinc-900 border border-zinc-800')}`}>
-                <h2 className={`text-xl font-medium mb-5 ${t('text-zinc-900', 'text-white')}`}>Edit Connection</h2>
+                <h2 className={`text-xl font-semibold mb-5 ${t('text-zinc-900', 'text-white')}`}>Edit Connection</h2>
                 <form onSubmit={handleSaveEditContact} className="space-y-4">
                   <div className="flex gap-4">
                     <div className="flex-1">
@@ -755,8 +851,8 @@
                     <input type="date" value={editingContactDetails.birthday || ''} onChange={(e) => setEditingContactDetails({...editingContactDetails, birthday: e.target.value})} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm transition-colors ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white [color-scheme:dark]')}`} />
                   </div>
                   <div className="mt-8 flex justify-end gap-3">
-                    <button type="button" onClick={() => setEditingContactDetails(null)} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
-                    <button type="submit" disabled={!editingContactDetails.firstName.trim()} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200')}`}>Save Changes</button>
+                    <button type="button" onClick={() => setEditingContactDetails(null)} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
+                    <button type="submit" disabled={!editingContactDetails.firstName.trim()} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200')}`}>Save Changes</button>
                   </div>
                 </form>
               </div>
@@ -767,21 +863,21 @@
           {isManageTagsOpen && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={(e) => handleBackdropClick(e, () => setIsManageTagsOpen(false))}>
               <div className={`rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${t('bg-white', 'bg-zinc-900 border border-zinc-800')}`}>
-                <h2 className={`text-xl font-medium mb-5 ${t('text-zinc-900', 'text-white')}`}>Manage Groups</h2>
-                <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
+                <h2 className={`text-xl font-semibold mb-5 ${t('text-zinc-900', 'text-white')}`}>Manage Groups</h2>
+                <div className="space-y-3 mb-6 max-h-60 overflow-y-auto no-scrollbar">
                   {tags.map(tag => (
                     <div key={tag} className={`flex items-center justify-between p-3 rounded-xl border ${t('bg-zinc-50 border-zinc-200', 'bg-zinc-800/50 border-zinc-700')}`}>
-                      <span className={`text-sm font-medium ${t('text-zinc-700', 'text-zinc-300')}`}>{tag}</span>
+                      <span className={`text-sm font-semibold ${t('text-zinc-700', 'text-zinc-300')}`}>{tag}</span>
                       <button onClick={() => handleDeleteTag(tag)} className="p-1 text-zinc-400 hover:text-rose-500 rounded-md transition-colors"><Trash2 size={16} /></button>
                     </div>
                   ))}
                 </div>
                 <form onSubmit={handleAddTag} className="flex gap-2">
                   <input type="text" placeholder="New group name..." value={newTagInput} onChange={(e) => setNewTagInput(e.target.value)} className={`flex-1 px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
-                  <button type="submit" disabled={!newTagInput.trim()} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('bg-zinc-900 text-white', 'bg-white text-zinc-900 disabled:opacity-50')}`}>Add</button>
+                  <button type="submit" disabled={!newTagInput.trim()} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('bg-zinc-900 text-white', 'bg-white text-zinc-900 disabled:opacity-50')}`}>Add</button>
                 </form>
                 <div className="mt-6 flex justify-end">
-                  <button onClick={() => setIsManageTagsOpen(false)} className={`px-4 py-2 text-sm font-medium rounded-xl ${t('bg-zinc-100 hover:bg-zinc-200', 'bg-zinc-800 hover:bg-zinc-700 text-white')}`}>Done</button>
+                  <button onClick={() => setIsManageTagsOpen(false)} className={`px-4 py-2 text-sm font-semibold rounded-xl ${t('bg-zinc-100 hover:bg-zinc-200', 'bg-zinc-800 hover:bg-zinc-700 text-white')}`}>Done</button>
                 </div>
               </div>
             </div>
@@ -791,14 +887,14 @@
           {isMultiLogModalOpen && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={(e) => handleBackdropClick(e, () => setIsMultiLogModalOpen(false))}>
               <div className={`rounded-3xl p-6 w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${t('bg-white', 'bg-zinc-900 border border-zinc-800')} flex flex-col max-h-[90vh]`}>
-                <h2 className={`text-xl font-medium mb-1 ${t('text-zinc-900', 'text-white')}`}>Log Group Interaction</h2>
+                <h2 className={`text-xl font-semibold mb-1 ${t('text-zinc-900', 'text-white')}`}>Log Group Interaction</h2>
                 <p className={`text-sm mb-5 ${t('text-zinc-500', 'text-zinc-400')}`}>Select multiple people to log the same note.</p>
                 
                 <form onSubmit={handleMultiLogSubmit} className="space-y-4 flex-1 flex flex-col min-h-0">
                   <div className="flex flex-col flex-1 min-h-[150px]">
                     <label className={`block text-sm font-medium mb-1 shrink-0 ${t('text-zinc-700', 'text-zinc-300')}`}>Who was there?</label>
                     <input type="text" placeholder="Search contacts..." value={multiLogSearch} onChange={e => setMultiLogSearch(e.target.value)} className={`mb-2 shrink-0 block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
-                    <div className={`flex-1 overflow-y-auto border rounded-xl p-2 ${t('border-zinc-200 bg-zinc-50', 'border-zinc-700 bg-zinc-800/30')}`}>
+                    <div className={`flex-1 overflow-y-auto border rounded-xl p-2 no-scrollbar ${t('border-zinc-200 bg-zinc-50', 'border-zinc-700 bg-zinc-800/30')}`}>
                       {contacts.filter(c => `${c.firstName} ${c.lastName}`.toLowerCase().includes(multiLogSearch.toLowerCase())).map(c => (
                         <div 
                           key={c.id} 
@@ -814,11 +910,11 @@
                           <div className={`w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 ${multiLogSelectedIds.includes(c.id) ? t('bg-zinc-900 border-zinc-900', 'bg-white border-white') : t('bg-white border-zinc-300', 'bg-zinc-900 border-zinc-600')}`}>
                             {multiLogSelectedIds.includes(c.id) && <Check size={12} className={t('text-white', 'text-zinc-900')} />}
                           </div>
-                          <span className={`text-sm select-none ${t('text-zinc-800', 'text-zinc-200')}`}>{c.firstName} {c.lastName}</span>
+                          <span className={`text-sm font-medium select-none ${t('text-zinc-800', 'text-zinc-200')}`}>{c.firstName} {c.lastName}</span>
                         </div>
                       ))}
                     </div>
-                    <div className={`text-xs mt-1.5 shrink-0 font-medium ${t('text-zinc-500', 'text-zinc-400')}`}>
+                    <div className={`text-xs mt-1.5 shrink-0 font-semibold ${t('text-zinc-500', 'text-zinc-400')}`}>
                       {multiLogSelectedIds.length} person(s) selected
                     </div>
                   </div>
@@ -832,8 +928,8 @@
                     <textarea rows="2" placeholder="What did you talk about?" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm resize-none ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                   </div>
                   <div className="mt-4 pt-2 flex justify-end gap-3 shrink-0">
-                    <button type="button" onClick={() => setIsMultiLogModalOpen(false)} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
-                    <button type="submit" disabled={multiLogSelectedIds.length === 0} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200 disabled:opacity-50')}`}>Save Interaction</button>
+                    <button type="button" onClick={() => setIsMultiLogModalOpen(false)} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
+                    <button type="submit" disabled={multiLogSelectedIds.length === 0} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200 disabled:opacity-50')}`}>Save</button>
                   </div>
                 </form>
               </div>
@@ -844,7 +940,7 @@
           {loggingInteractionFor && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={(e) => handleBackdropClick(e, () => setLoggingInteractionFor(null))}>
               <div className={`rounded-3xl p-6 w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${t('bg-white', 'bg-zinc-900 border border-zinc-800')}`}>
-                <h2 className={`text-xl font-medium mb-1 ${t('text-zinc-900', 'text-white')}`}>Log Interaction</h2>
+                <h2 className={`text-xl font-semibold mb-1 ${t('text-zinc-900', 'text-white')}`}>Log Interaction</h2>
                 <p className={`text-sm mb-5 ${t('text-zinc-500', 'text-zinc-400')}`}>With {loggingInteractionFor.firstName} {loggingInteractionFor.lastName}</p>
                 <form onSubmit={handleLogInteraction} className="space-y-4">
                   <div>
@@ -856,8 +952,8 @@
                     <textarea rows="3" placeholder="What did you talk about?" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm resize-none ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                   </div>
                   <div className="mt-8 flex justify-end gap-3">
-                    <button type="button" onClick={() => setLoggingInteractionFor(null)} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
-                    <button type="submit" className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200')}`}>Save Interaction</button>
+                    <button type="button" onClick={() => setLoggingInteractionFor(null)} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
+                    <button type="submit" className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200')}`}>Save Interaction</button>
                   </div>
                 </form>
               </div>
@@ -868,11 +964,11 @@
           {contactToDelete && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={(e) => handleBackdropClick(e, () => setContactToDelete(null))}>
               <div className={`rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${t('bg-white', 'bg-zinc-900 border border-zinc-800')}`}>
-                <h2 className={`text-xl font-medium mb-3 ${t('text-zinc-900', 'text-white')}`}>Remove Connection?</h2>
+                <h2 className={`text-xl font-semibold mb-3 ${t('text-zinc-900', 'text-white')}`}>Remove Connection?</h2>
                 <p className={`text-sm mb-6 ${t('text-zinc-600', 'text-zinc-400')}`}>Are you sure you want to remove {contactToDelete.firstName} from your list? This action cannot be undone.</p>
                 <div className="flex justify-end gap-3">
-                  <button onClick={() => setContactToDelete(null)} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
-                  <button onClick={handleDeleteContact} className="px-4 py-2 text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors">Yes, remove</button>
+                  <button onClick={() => setContactToDelete(null)} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
+                  <button onClick={handleDeleteContact} className="px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors">Yes, remove</button>
                 </div>
               </div>
             </div>
@@ -883,24 +979,24 @@
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={(e) => handleBackdropClick(e, () => setViewingHistoryFor(null))}>
               <div className={`rounded-3xl p-6 w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${t('bg-white', 'bg-zinc-900 border border-zinc-800')} flex flex-col max-h-[80vh]`}>
                 <div className="flex items-center justify-between mb-5">
-                  <h2 className={`text-xl font-medium ${t('text-zinc-900', 'text-white')}`}>Interaction History</h2>
+                  <h2 className={`text-xl font-semibold ${t('text-zinc-900', 'text-white')}`}>Interaction History</h2>
                   <button onClick={() => setViewingHistoryFor(null)} className={`p-1.5 rounded-lg transition-colors ${t('text-zinc-400 hover:bg-zinc-100', 'text-zinc-500 hover:bg-zinc-800')}`}><X size={20}/></button>
                 </div>
-                <p className={`text-sm mb-4 font-medium ${t('text-zinc-700', 'text-zinc-300')}`}>{viewingHistoryFor.firstName} {viewingHistoryFor.lastName}</p>
+                <p className={`text-sm mb-4 font-semibold ${t('text-zinc-700', 'text-zinc-300')}`}>{viewingHistoryFor.firstName} {viewingHistoryFor.lastName}</p>
                 
-                <div className="overflow-y-auto flex-1 pr-2 space-y-4">
+                <div className="overflow-y-auto flex-1 pr-2 space-y-4 no-scrollbar">
                   {[...viewingHistoryFor.interactions].sort((a,b) => new Date(b.date) - new Date(a.date)).map(interaction => (
                     <div key={interaction.id} className={`group/item p-4 rounded-2xl border relative ${t('bg-zinc-50 border-zinc-200', 'bg-zinc-800/30 border-zinc-700')}`}>
                       <div className="flex justify-between items-start">
-                        <span className={`text-xs font-medium px-2 py-1 rounded-md ${t('bg-white text-zinc-600 border border-zinc-200', 'bg-zinc-900 text-zinc-300 border-zinc-700')}`}>
+                        <span className={`text-xs font-semibold px-2 py-1 rounded-md ${t('bg-white text-zinc-600 border border-zinc-200', 'bg-zinc-900 text-zinc-300 border-zinc-700')}`}>
                           {new Date(interaction.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </span>
-                        <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                          <button onClick={() => openEditInteractionModal(viewingHistoryFor, interaction)} className={`p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-blue-500 hover:bg-blue-50', 'text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10')}`} title="Edit note">
-                            <Pencil size={12} />
+                        <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover/item:opacity-100 transition-opacity">
+                          <button onClick={() => openEditInteractionModal(viewingHistoryFor, interaction)} className={`p-1.5 sm:p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-blue-500 hover:bg-blue-50', 'text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10')}`} title="Edit note">
+                            <Pencil size={14} className="sm:w-3 sm:h-3" />
                           </button>
-                          <button onClick={() => handleDeleteInteraction(viewingHistoryFor.id, interaction.id)} className={`p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-rose-500 hover:bg-rose-50', 'text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10')}`} title="Delete note">
-                            <Trash2 size={12} />
+                          <button onClick={() => handleDeleteInteraction(viewingHistoryFor.id, interaction.id)} className={`p-1.5 sm:p-1 rounded-md transition-colors ${t('text-zinc-400 hover:text-rose-500 hover:bg-rose-50', 'text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10')}`} title="Delete note">
+                            <Trash2 size={14} className="sm:w-3 sm:h-3" />
                           </button>
                         </div>
                       </div>
@@ -921,7 +1017,7 @@
           {editingInteraction && (
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={(e) => handleBackdropClick(e, () => setEditingInteraction(null))}>
               <div className={`rounded-3xl p-6 w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200 ${t('bg-white', 'bg-zinc-900 border border-zinc-800')}`}>
-                <h2 className={`text-xl font-medium mb-5 ${t('text-zinc-900', 'text-white')}`}>Edit Interaction</h2>
+                <h2 className={`text-xl font-semibold mb-5 ${t('text-zinc-900', 'text-white')}`}>Edit Interaction</h2>
                 <form onSubmit={handleSaveEditInteraction} className="space-y-4">
                   <div>
                     <label className={`block text-sm font-medium mb-1 ${t('text-zinc-700', 'text-zinc-300')}`}>Date</label>
@@ -932,8 +1028,8 @@
                     <textarea rows="3" value={interactionNote} onChange={(e) => setInteractionNote(e.target.value)} className={`block w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 sm:text-sm resize-none ${t('border-zinc-200 bg-zinc-50 focus:bg-white focus:ring-zinc-900', 'border-zinc-700 bg-zinc-800/50 focus:ring-zinc-400 text-white')}`} />
                   </div>
                   <div className="mt-8 flex justify-end gap-3">
-                    <button type="button" onClick={() => setEditingInteraction(null)} className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
-                    <button type="submit" className={`px-4 py-2 text-sm font-medium rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200')}`}>Save</button>
+                    <button type="button" onClick={() => setEditingInteraction(null)} className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-zinc-600 hover:bg-zinc-100', 'text-zinc-400 hover:bg-zinc-800')}`}>Cancel</button>
+                    <button type="submit" className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${t('text-white bg-zinc-900 hover:bg-zinc-800', 'text-zinc-900 bg-white hover:bg-zinc-200')}`}>Save</button>
                   </div>
                 </form>
               </div>
