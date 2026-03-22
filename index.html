@@ -198,8 +198,10 @@
     // ==========================================
     const ContactCard = ({ contact, isDarkMode, t, openLogModal, openEditContactModal, setViewingHistoryFor, setContactToDelete, handleSnoozeContact }) => {
       const [swipeX, setSwipeX] = useState(0);
+      const [hoverState, setHoverState] = useState('none'); // 'none', 'left', 'right'
       const touchStartX = useRef(null);
       const touchStartY = useRef(null);
+      const initialSwipeX = useRef(0); // Tracks where the card was when the touch started
       const isSwiping = useRef(false);
       const isHorizontal = useRef(false);
       
@@ -209,6 +211,7 @@
       const handleTouchStart = (e) => {
         touchStartX.current = e.touches[0].clientX;
         touchStartY.current = e.touches[0].clientY;
+        initialSwipeX.current = swipeX; // Capture the starting position
         isSwiping.current = true;
         isHorizontal.current = false;
       };
@@ -229,29 +232,48 @@
         }
 
         if (isHorizontal.current) {
-          // Allow swipe left and right
-          if (diffX < 0) {
-            setSwipeX(Math.max(diffX, SWIPE_LEFT_THRESHOLD - 20)); // slight rubber band
+          // Calculate the new absolute position based on where it started
+          const newSwipeX = initialSwipeX.current + diffX;
+          
+          // Apply rubber-banding resistance if pulled past the thresholds
+          if (newSwipeX < SWIPE_LEFT_THRESHOLD) {
+             setSwipeX(SWIPE_LEFT_THRESHOLD + (newSwipeX - SWIPE_LEFT_THRESHOLD) * 0.2); 
+          } else if (newSwipeX > SWIPE_RIGHT_THRESHOLD) {
+             setSwipeX(SWIPE_RIGHT_THRESHOLD + (newSwipeX - SWIPE_RIGHT_THRESHOLD) * 0.2); 
           } else {
-            setSwipeX(Math.min(diffX, SWIPE_RIGHT_THRESHOLD + 20));
+             setSwipeX(newSwipeX);
           }
         }
       };
 
       const handleTouchEnd = () => {
         isSwiping.current = false;
-        // Snap open or snap closed based on distance
-        if (swipeX < SWIPE_LEFT_THRESHOLD / 2) {
+        if (!isHorizontal.current) return;
+
+        const diffX = swipeX - initialSwipeX.current;
+
+        // Smart snapping logic
+        if (initialSwipeX.current === SWIPE_LEFT_THRESHOLD && diffX > 20) {
+          // If it was open on the left, and they swiped right a bit -> snap closed
+          setSwipeX(0);
+        } else if (initialSwipeX.current === SWIPE_RIGHT_THRESHOLD && diffX < -20) {
+          // If it was open on the right, and they swiped left a bit -> snap closed
+          setSwipeX(0);
+        } else if (swipeX < SWIPE_LEFT_THRESHOLD / 2) {
+          // Swiped far enough left from center to open
           setSwipeX(SWIPE_LEFT_THRESHOLD);
         } else if (swipeX > SWIPE_RIGHT_THRESHOLD / 2) {
+          // Swiped far enough right from center to open
           setSwipeX(SWIPE_RIGHT_THRESHOLD);
         } else {
+          // Default snap to center
           setSwipeX(0);
         }
       };
 
       const resetSwipe = () => { 
         setSwipeX(0); 
+        setHoverState('none');
       };
 
       // Extract Data Logic
