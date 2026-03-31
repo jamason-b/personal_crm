@@ -924,12 +924,12 @@
       }
 
       return (
-        <div className={`min-h-[100dvh] font-sans safe-pb transition-colors duration-200 ${t('bg-[#FAFAFA] text-zinc-800', 'bg-zinc-950 text-zinc-100')}`}>
+        <div className={`min-h-[100dvh] font-sans transition-colors duration-200 ${t('bg-[#FAFAFA] text-zinc-800', 'bg-zinc-950 text-zinc-100')}`}>
           
           {/* Main Content Area */}
-          <div className="p-4 sm:p-10 max-w-3xl mx-auto pb-24">
+          <div className="p-4 sm:p-10 max-w-3xl mx-auto pb-24 sm:pb-12">
             
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-10">
+            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className={`text-3xl font-bold tracking-tight ${t('text-zinc-900', 'text-white')}`}>Connections</h1>
@@ -984,12 +984,27 @@
                     </>
                   )}
                 </div>
+
+                {/* Desktop Multi-Log Button (Hidden on Mobile) */}
+                {contacts.length > 0 && (
+                  <button onClick={openMultiLogModal} className={`hidden sm:inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors shadow-sm border ${t('bg-white text-zinc-900 border-zinc-200 hover:bg-zinc-50', 'bg-zinc-900 text-zinc-100 border-zinc-700 hover:bg-zinc-800')}`}>
+                    <Plus size={16} /> Log Group
+                  </button>
+                )}
                 
                 <button onClick={() => setIsAddModalOpen(true)} className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors shadow-sm border ${t('bg-zinc-900 text-white border-transparent hover:bg-zinc-800', 'bg-zinc-800 text-zinc-100 border-zinc-700 hover:bg-zinc-700')}`}>
                   <UserPlus size={16} /> <span className="hidden sm:inline-block">Add Person</span>
                 </button>
               </div>
             </header>
+
+            {/* Desktop Tab Navigation (Hidden on Mobile) */}
+            <div className={`hidden sm:flex border-b mb-6 transition-colors ${t('border-zinc-200', 'border-zinc-800')}`}>
+               <div className="flex gap-6">
+                 <button onClick={() => setActiveTab('contacts')} className={`pb-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'contacts' ? t('border-zinc-900 text-zinc-900', 'border-zinc-100 text-white') : t('border-transparent text-zinc-500 hover:text-zinc-800', 'border-transparent text-zinc-400 hover:text-zinc-200')}`}>People</button>
+                 <button onClick={() => setActiveTab('stats')} className={`pb-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'stats' ? t('border-zinc-900 text-zinc-900', 'border-zinc-100 text-white') : t('border-transparent text-zinc-500 hover:text-zinc-800', 'border-transparent text-zinc-400 hover:text-zinc-200')}`}>Stats Dashboard</button>
+               </div>
+            </div>
 
             {/* VIEWS: Contacts List vs Stats Dashboard */}
             {activeTab === 'contacts' ? (
@@ -1169,8 +1184,8 @@
             )}
           </div>
           
-          {/* Bottom Navigation */}
-          <nav className={`fixed bottom-0 left-0 right-0 z-30 border-t pb-safe ${t('bg-white/80 border-zinc-200 backdrop-blur-md', 'bg-zinc-950/80 border-zinc-800 backdrop-blur-md')}`}>
+          {/* Bottom Navigation (Mobile Only) */}
+          <nav className={`sm:hidden fixed bottom-0 left-0 right-0 z-30 border-t pb-safe ${t('bg-white/80 border-zinc-200 backdrop-blur-md', 'bg-zinc-950/80 border-zinc-800 backdrop-blur-md')}`}>
             <div className="flex justify-around items-center h-16 max-w-md mx-auto px-4">
               <button 
                 onClick={() => setActiveTab('contacts')} 
@@ -1190,11 +1205,11 @@
             </div>
           </nav>
 
-          {/* Multi-Log Floating Action Button */}
+          {/* Multi-Log Floating Action Button (Mobile Only) */}
           {contacts.length > 0 && activeTab === 'contacts' && (
             <button 
               onClick={openMultiLogModal}
-              className={`fixed fab-safe z-40 p-4 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all duration-200 ${t('bg-zinc-900 text-white', 'bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700')}`}
+              className={`sm:hidden fixed fab-safe z-40 p-4 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all duration-200 ${t('bg-zinc-900 text-white', 'bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700')}`}
               title="Log Group Interaction"
             >
               <Plus size={24} />
