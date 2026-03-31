@@ -92,6 +92,13 @@
       firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
+    
+    // Enable offline persistence so data saves locally instantly, 
+    // even if the app is closed before the network sync finishes.
+    db.enablePersistence().catch(function(err) {
+      console.warn("Firebase persistence error:", err.code);
+    });
+
     const SHARED_DOC_ID = 'shared_workspace';
 
     // ==========================================
@@ -493,6 +500,18 @@
       const fileInputRef = useRef(null);
       const t = (light, dark) => isDarkMode ? dark : light;
 
+      // Warn user if they try to close the app while data is still syncing to the cloud
+      useEffect(() => {
+        const handleBeforeUnload = (e) => {
+          if (syncStatus === 'Syncing...') {
+            e.preventDefault();
+            e.returnValue = '';
+          }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+      }, [syncStatus]);
+
       // Update mobile status bar and body background when theme changes
       useEffect(() => {
         const color = isDarkMode ? '#09090b' : '#FAFAFA'; // #09090b is Tailwind's zinc-950
@@ -559,6 +578,24 @@
         });
 
       }, [contacts, tags, quickActivities, isDarkMode, dataLoading]);
+
+      // Manual Sync Function for Peace of Mind
+      const handleManualSync = async () => {
+        if (syncStatus === 'Syncing...') return;
+        setSyncStatus('Syncing...');
+        try {
+          await db.collection('crm_data').doc(SHARED_DOC_ID).set({
+            contacts, tags, quickActivities, isDarkMode,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          setSyncStatus('Synced');
+          showToast("Data securely synced!");
+        } catch (err) {
+          console.error('Error saving to cloud:', err);
+          setSyncStatus('Sync Error');
+          showToast("Error syncing data.");
+        }
+      };
 
       // Global Key Handler
       useEffect(() => {
@@ -896,16 +933,20 @@
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className={`text-3xl font-bold tracking-tight ${t('text-zinc-900', 'text-white')}`}>Connections</h1>
-                  <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-colors ${
+                  <button 
+                    onClick={handleManualSync}
+                    disabled={syncStatus === 'Syncing...'}
+                    title="Force Sync"
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer active:scale-95 shadow-sm border ${
                     syncStatus === 'Syncing...' 
-                      ? t('bg-blue-50 text-blue-600', 'bg-blue-500/10 text-blue-400')
+                      ? t('bg-blue-50 text-blue-600 border-blue-200', 'bg-blue-500/10 text-blue-400 border-blue-500/30')
                       : syncStatus === 'Sync Error'
-                        ? t('bg-rose-50 text-rose-600', 'bg-rose-500/10 text-rose-400')
-                        : t('bg-emerald-50 text-emerald-600', 'bg-emerald-500/10 text-emerald-400')
+                        ? t('bg-rose-50 text-rose-600 border-rose-200', 'bg-rose-500/10 text-rose-400 border-rose-500/30')
+                        : t('bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100', 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20')
                   }`}>
-                    <Cloud size={14} className={syncStatus === 'Syncing...' ? 'animate-pulse' : ''} />
+                    <RefreshCcw size={12} strokeWidth={3} className={syncStatus === 'Syncing...' ? 'animate-spin' : ''} />
                     <span className="hidden sm:inline-block">{syncStatus}</span>
-                  </div>
+                  </button>
                 </div>
                 <p className={`mt-1 text-sm ${t('text-zinc-500', 'text-zinc-400')}`}>Stay mindful of your relationships.</p>
               </div>
