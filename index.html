@@ -141,22 +141,30 @@
 
     const DEFAULT_TAGS = ['Family', 'OG Friend', 'Mission Friend', 'School Friend'];
     const DEFAULT_QUICK_ACTIVITIES = ['📱 Texted', '📞 Called', '☕️ Coffee', '🍽️ Meal', '👋 Hung out'];
+    const MS_PER_DAY = 86400000; // 1000 * 60 * 60 * 24
 
     // ==========================================
     // 3. GLOBAL HELPERS
     // ==========================================
+
+    // Format a Date object (or "now") as YYYY-MM-DD for <input type="date">
+    const toInputDate = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+    // O(n) scan instead of O(n log n) sort – called frequently per contact
     const getLatestInteraction = (contact) => {
       if (!contact.interactions || contact.interactions.length === 0) return null;
-      return [...contact.interactions].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+      return contact.interactions.reduce((latest, curr) =>
+        new Date(curr.date) > new Date(latest.date) ? curr : latest
+      );
     };
 
     const getAttentionRatio = (contact) => {
       // If snoozed, they are perfectly healthy (ratio 0)
       if (contact.snoozeUntil && new Date(contact.snoozeUntil) > new Date()) return 0;
-      
+
       const latest = getLatestInteraction(contact);
       if (!latest) return Infinity; // Never contacted pushes to absolute top
-      const diffDays = Math.round(Math.abs(new Date() - new Date(latest.date)) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.round(Math.abs(new Date() - new Date(latest.date)) / MS_PER_DAY);
       return diffDays / (contact.targetFrequency || 30);
     };
 
@@ -165,7 +173,7 @@
       const date = new Date(dateString);
       const now = new Date();
       date.setHours(0, 0, 0, 0); now.setHours(0, 0, 0, 0);
-      const diffDays = Math.round(Math.abs(now - date) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.round(Math.abs(now - date) / MS_PER_DAY);
 
       if (diffDays === 0) return 'Today';
       if (diffDays === 1) return 'Yesterday';
@@ -181,10 +189,10 @@
       today.setHours(0,0,0,0);
       const [year, month, day] = birthdayStr.split('-');
       const bdayThisYear = new Date(today.getFullYear(), month - 1, day);
-      if (bdayThisYear < today && (today - bdayThisYear) > 1000 * 60 * 60 * 24) {
+      if (bdayThisYear < today && (today - bdayThisYear) > MS_PER_DAY) {
          bdayThisYear.setFullYear(today.getFullYear() + 1);
       }
-      return Math.round((bdayThisYear - today) / (1000 * 60 * 60 * 24));
+      return Math.round((bdayThisYear - today) / MS_PER_DAY);
     };
 
     const isBirthdayUpcoming = (birthdayStr) => {
@@ -204,7 +212,7 @@
     // ==========================================
     // 4. SWIPEABLE CONTACT CARD COMPONENT
     // ==========================================
-    const ContactCard = ({ contact, isDarkMode, t, openLogModal, openEditContactModal, setViewingHistoryFor, setContactToDelete, handleSnoozeContact }) => {
+    const ContactCard = React.memo(({ contact, isDarkMode, t, openLogModal, openEditContactModal, setViewingHistoryFor, setContactToDelete, handleSnoozeContact }) => {
       const [swipeX, setSwipeX] = useState(0);
       const touchStartX = useRef(null);
       const touchStartY = useRef(null);
@@ -433,7 +441,7 @@
           </div>
         </div>
       );
-    };
+    });
 
     // ==========================================
     // 5. MAIN APP COMPONENT
@@ -454,6 +462,7 @@
       const [contacts, setContacts] = useState([]);
 
       const [searchQuery, setSearchQuery] = useState('');
+      const [debouncedSearch, setDebouncedSearch] = useState('');
       const [filterTag, setFilterTag] = useState('All');
       const [sortOrder, setSortOrder] = useState('oldest');
 
@@ -511,6 +520,12 @@
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
       }, [syncStatus]);
+
+      // Debounce search to avoid re-filtering the entire contact list on every keystroke
+      useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(searchQuery), 250);
+        return () => clearTimeout(timer);
+      }, [searchQuery]);
 
       // Update mobile status bar and body background when theme changes
       useEffect(() => {
@@ -634,7 +649,7 @@
              return false;
           }
 
-          const searchLower = searchQuery.toLowerCase();
+          const searchLower = debouncedSearch.toLowerCase();
           
           // 1. Check basic profile text
           const matchName = `${c.firstName} ${c.lastName}`.toLowerCase().includes(searchLower);
@@ -674,7 +689,7 @@
           // Urgency sort (Needs Attention). Highest ratio (most overdue) goes to the top.
           return getAttentionRatio(b) - getAttentionRatio(a);
         });
-      }, [contacts, searchQuery, filterTag, sortOrder, zenMode]);
+      }, [contacts, debouncedSearch, filterTag, sortOrder, zenMode]);
 
       // Extract Pinned Contacts
       const pinnedContacts = useMemo(() => {
@@ -771,8 +786,7 @@
       const openMultiLogModal = () => {
         setMultiLogSelectedIds([]);
         setMultiLogSearch('');
-        const d = new Date();
-        setInteractionDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+        setInteractionDate(toInputDate());
         setInteractionNote('');
         setIsMultiLogModalOpen(true);
       }
@@ -783,14 +797,23 @@
 
         const [year, month, day] = interactionDate.split('-');
         const newDate = new Date(year, month - 1, day);
+        const contactId = editingInteraction.contactId;
 
-        setContacts(contacts.map(c => c.id === editingInteraction.contactId ? {
-          ...c,
-          interactions: c.interactions.map(i => i.id === editingInteraction.id ? { ...i, date: newDate.toISOString(), note: interactionNote.trim() } : i)
-        } : c));
+        // Use functional update to get the freshest state and derive the
+        // updated contact for the history modal from the same pass.
+        let updatedContact = null;
+        setContacts(prev => prev.map(c => {
+          if (c.id !== contactId) return c;
+          const updated = {
+            ...c,
+            interactions: c.interactions.map(i => i.id === editingInteraction.id ? { ...i, date: newDate.toISOString(), note: interactionNote.trim() } : i)
+          };
+          updatedContact = updated;
+          return updated;
+        }));
 
         setEditingInteraction(null);
-        setViewingHistoryFor(contacts.find(c => c.id === editingInteraction.contactId));
+        if (updatedContact) setViewingHistoryFor(updatedContact);
         showToast("Note updated");
       };
 
@@ -808,15 +831,13 @@
 
       const openLogModal = (contact) => {
         setLoggingInteractionFor(contact);
-        const d = new Date();
-        setInteractionDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+        setInteractionDate(toInputDate());
         setInteractionNote('');
       };
 
       const openEditInteractionModal = (contact, interaction) => {
         setEditingInteraction({ contactId: contact.id, id: interaction.id });
-        const d = new Date(interaction.date);
-        setInteractionDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+        setInteractionDate(toInputDate(new Date(interaction.date)));
         setInteractionNote(interaction.note || '');
       };
 
@@ -838,7 +859,7 @@
       };
 
       const handleDeleteTag = (tagToDelete) => {
-        setTags(tags.filter(t => t !== tagToDelete));
+        setTags(tags.filter(tag => tag !== tagToDelete));
         setContacts(contacts.map(c => c.tag === tagToDelete ? { ...c, tag: '' } : c));
         if (filterTag === tagToDelete) setFilterTag('All');
       };
@@ -1430,14 +1451,20 @@
                     </div>
 
                     <div className={`flex-1 overflow-y-auto rounded-xl border p-2 no-scrollbar ${t('border-zinc-200 bg-zinc-50/50', 'border-zinc-800 bg-zinc-950/30')}`}>
-                      {contacts
-                        .filter(c => `${c.firstName} ${c.lastName}`.toLowerCase().includes(multiLogSearch.toLowerCase()))
-                        .sort((a,b) => a.firstName.localeCompare(b.firstName))
-                        .map(c => {
+                      {(() => {
+                        const filtered = contacts
+                          .filter(c => `${c.firstName} ${c.lastName}`.toLowerCase().includes(multiLogSearch.toLowerCase()))
+                          .sort((a,b) => a.firstName.localeCompare(b.firstName));
+
+                        if (filtered.length === 0) {
+                          return <div className={`text-center py-6 text-sm ${t('text-zinc-500', 'text-zinc-400')}`}>No contacts found.</div>;
+                        }
+
+                        return filtered.map(c => {
                           const isSelected = multiLogSelectedIds.includes(c.id);
                           return (
-                            <div 
-                              key={c.id} 
+                            <div
+                              key={c.id}
                               onClick={() => {
                                 if (isSelected) {
                                   setMultiLogSelectedIds(multiLogSelectedIds.filter(id => id !== c.id));
@@ -1456,10 +1483,8 @@
                               </div>
                             </div>
                           );
-                        })}
-                        {contacts.filter(c => `${c.firstName} ${c.lastName}`.toLowerCase().includes(multiLogSearch.toLowerCase())).length === 0 && (
-                          <div className={`text-center py-6 text-sm ${t('text-zinc-500', 'text-zinc-400')}`}>No contacts found.</div>
-                        )}
+                        });
+                      })()}
                     </div>
                   </div>
                   
