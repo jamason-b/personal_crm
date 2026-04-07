@@ -29,6 +29,7 @@
 
   <!-- Load Firebase Compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <style>
@@ -92,6 +93,7 @@
       firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
+    const auth = firebase.auth();
     
     // Enable offline persistence so data saves locally instantly, 
     // even if the app is closed before the network sync finishes.
@@ -100,6 +102,70 @@
     });
 
     const SHARED_DOC_ID = 'shared_workspace';
+
+    // ==========================================
+    // LOGIN SCREEN COMPONENT
+    // ==========================================
+    function LoginScreen() {
+      const [email, setEmail] = React.useState('');
+      const [password, setPassword] = React.useState('');
+      const [error, setError] = React.useState('');
+      const [loading, setLoading] = React.useState(false);
+
+      const handleLogin = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+        try {
+          await auth.signInWithEmailAndPassword(email, password);
+        } catch (err) {
+          setError('Incorrect email or password. Please try again.');
+          setLoading(false);
+        }
+      };
+
+      return (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          minHeight: '100vh', backgroundColor: '#FAFAFA', padding: '1.5rem'
+        }}>
+          <div style={{
+            width: '100%', maxWidth: '360px', backgroundColor: 'white',
+            borderRadius: '1.5rem', padding: '2.5rem', boxShadow: '0 4px 24px rgba(0,0,0,0.08)'
+          }}>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.25rem', color: '#09090b' }}>
+              Personal CRM
+            </h1>
+            <p style={{ color: '#71717a', marginBottom: '2rem', fontSize: '0.875rem' }}>Sign in to access your contacts</p>
+            <form onSubmit={handleLogin}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#3f3f46', marginBottom: '0.5rem' }}>Email</label>
+                <input
+                  type="email" required autoComplete="email"
+                  value={email} onChange={e => setEmail(e.target.value)}
+                  style={{ width: '100%', padding: '0.625rem 0.875rem', border: '1px solid #e4e4e7', borderRadius: '0.75rem', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#3f3f46', marginBottom: '0.5rem' }}>Password</label>
+                <input
+                  type="password" required autoComplete="current-password"
+                  value={password} onChange={e => setPassword(e.target.value)}
+                  style={{ width: '100%', padding: '0.625rem 0.875rem', border: '1px solid #e4e4e7', borderRadius: '0.75rem', fontSize: '1rem', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              {error && <p style={{ color: '#ef4444', fontSize: '0.875rem', marginBottom: '1rem' }}>{error}</p>}
+              <button
+                type="submit" disabled={loading}
+                style={{ width: '100%', padding: '0.75rem', backgroundColor: '#09090b', color: 'white', border: 'none', borderRadius: '0.75rem', fontSize: '0.9375rem', fontWeight: '600', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.6 : 1 }}
+              >
+                {loading ? 'Signing in...' : 'Sign In'}
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
 
     // ==========================================
     // 2. ICONS
@@ -446,6 +512,26 @@
     // ==========================================
     // 5. MAIN APP COMPONENT
     // ==========================================
+    // ==========================================
+    // ROOT COMPONENT — handles auth state
+    // ==========================================
+    function Root() {
+      const [authUser, setAuthUser] = useState(null);
+      const [authLoading, setAuthLoading] = useState(true);
+
+      useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged(user => {
+          setAuthUser(user);
+          setAuthLoading(false);
+        });
+        return () => unsubscribe();
+      }, []);
+
+      if (authLoading) return null; // Blank screen while checking session
+      if (!authUser) return <LoginScreen />;
+      return <App />;
+    }
+
     function App() {
       // App State
       const [dataLoading, setDataLoading] = useState(true);
@@ -1652,7 +1738,7 @@
     }
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    root.render(<Root />);
   </script>
 </body>
 </html>
